@@ -5,7 +5,7 @@ import Debug from "debug";
 import { Request, Response } from "express";
 
 // Create a new debug instance
-const debug = Debug('prisma-boilerplate:I_AM_LAZY_AND_HAVE_NOT_CHANGED_THIS_😛');
+const debug = Debug('prisma-boilerplate');
 debug("Resource controller loaded - BUT you SHOULDN'T BE SEEING THIS MESSAGE AT ALL if you have changed the file name from _resource.controller.ts to your actual resource name!");
 
 /**
