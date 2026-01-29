@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.ts";
+import { CreatePhotoData, UpdatePhotoData } from "../types/Photo.types.ts";
 
 //Get all photos
 
@@ -18,4 +19,31 @@ export const getPhoto = (photoId: number) => {
 			id: photoId,
 		},
 	})
+}
+
+//Create a new photo
+
+/**
+ * @param data Photo data
+ */
+
+export const createPhoto = async (data: CreatePhotoData) => {
+	return prisma.photo.create({
+		data,
+	});
+}
+
+//Update a photo
+
+/**
+ * @param photoId ID of the photo to update
+ * @param data Photo data
+ * @returns
+ */
+
+export const updatePhoto = async (photoId: number, data: UpdatePhotoData) => {
+	return prisma.photo.update({
+		where: { id: photoId },
+		data,
+	});
 }
