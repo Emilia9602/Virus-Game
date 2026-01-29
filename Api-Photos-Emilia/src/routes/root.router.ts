@@ -14,3 +14,5 @@ rootRouter.get("/", (_req, res) => {
  * [EXAMPLE] /resource
  */
 // rootRouter.use("/resource", resourceRouter);
+
+// LÄGG IN ALLA ROUTER HÄR SEN

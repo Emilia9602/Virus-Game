@@ -40,3 +40,15 @@ export const createUser = (data: CreateUserData) => {
 		data,
 	});
 }
+
+//Get a user by user's email
+
+/**
+ * @param email Email of the user to get
+ */
+
+export const getUserByEmail = async (email: string) => {
+	return await prisma.user.findUnique({
+		where: { email },
+	});
+}

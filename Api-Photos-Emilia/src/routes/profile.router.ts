@@ -1,5 +1,5 @@
 import express from "express";
-import { getProfile } from "../controllers/profile.controller.ts";
+import { getProfile, updateProfile } from "../controllers/profile.controller.ts";
 
 export const profileRouter = express.Router();
 
@@ -7,4 +7,4 @@ export const profileRouter = express.Router();
 profileRouter.get("/", getProfile);
 
 //Update the user's profile
-profileRouter.patch("/"); // Regler, validering, funktion
+profileRouter.patch("/", updateProfile); // Regler, validering
