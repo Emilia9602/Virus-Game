@@ -1,15 +1,16 @@
 import express from "express";
+import { index, show, store } from "../controllers/album.controller.ts";
 
 export const albumRouter = express.Router();
 
 //Get all albums
-albumRouter.get("/"); // Funktion
+albumRouter.get("/", index);
 
 //Get a single album
-albumRouter.get("/:albumId"); // Funktion
+albumRouter.get("/:albumId", show);
 
 //Create a new album
-albumRouter.post("/"); // Regler, validering, funktion
+albumRouter.post("/", store); // Regler, validering
 
 //Update an album
 albumRouter.patch("/:albumId"); // Regler, validering, funktion
