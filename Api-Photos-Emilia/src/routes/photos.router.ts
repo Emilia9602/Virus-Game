@@ -1,5 +1,5 @@
 import express from "express";
-import { index, show, store } from "../controllers/photos.controller.ts";
+import { destroy, index, show, store, update } from "../controllers/photos.controller.ts";
 
 export const photoRouter = express.Router();
 
@@ -13,7 +13,7 @@ photoRouter.get("/:photoId", show);
 photoRouter.post("/", store); // Regler, validering
 
 //Update a photo
-photoRouter.patch("/:photoId"); // Regler, validering, funktion
+photoRouter.patch("/:photoId", update); // Regler, validering
 
 //Delete a photo
-photoRouter.delete("/:photoId"); // Funktion
+photoRouter.delete("/:photoId", destroy);

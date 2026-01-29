@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
-import { createPhoto, getPhoto, getPhotos, updatePhoto } from "../services/photo.service.ts";
+import { createPhoto, deletePhoto, getPhoto, getPhotos, updatePhoto } from "../services/photo.service.ts";
 
 // Get all photos
 
@@ -82,6 +82,25 @@ export const update = async (req: Request, res: Response) => {
 			user_id: //user id?
 			id: photo.id,
 		}});
+	} catch (err) {
+		handlePrismaError(res, err);
+	}
+}
+
+//Delete a photo
+
+export const destroy = async (req: Request, res: Response) => {
+
+	const photoId = Number(req.params.photoId);
+
+	if (!photoId) {
+		res.status(400).send({ message: "Invalid id" });
+		return;
+	}
+
+	try {  //Kolla så den raderar länkarna till albumen, men inte själva albumen
+		await deletePhoto(photoId);
+		res.status(200).send({ status: "success", data: null});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}

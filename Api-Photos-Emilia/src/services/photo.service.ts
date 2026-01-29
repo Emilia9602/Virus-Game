@@ -47,3 +47,17 @@ export const updatePhoto = async (photoId: number, data: UpdatePhotoData) => {
 		data,
 	});
 }
+
+//Delete a photo
+
+/**
+ * @param photoId ID of the photo to delete
+ */
+
+export const deletePhoto = async (photoId: number) => {
+	return prisma.photo.delete({
+		where: {
+			id: photoId,
+		}
+	});
+}
