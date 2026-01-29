@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
-import { createAlbum, getAlbum, getAlbums } from "../services/album.service.ts";
+import { createAlbum, deleteAlbum, getAlbum, getAlbums, updateAlbum } from "../services/album.service.ts";
 
 //Get all albums
 
@@ -27,11 +27,13 @@ export const show = async (req: Request, res: Response) => {
 
 	try {
 		const album = await getAlbum(albumId);
-		res.status(200).send({ status: "success", data: {
-			id: album.id,
-			title: album.title,
-			//Ha med foton här
-		}});
+		res.status(200).send({
+			status: "success", data: {
+				id: album.id,
+				title: album.title,
+				//Ha med foton här
+			}
+		});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
@@ -45,11 +47,59 @@ export const store = async (req: Request, res: Response) => {
 
 	try {
 		const album = await createAlbum(); //Validerad data
-		res.status(200).send({ status: "success", data: {
-			title: album.title,
-			user_id: album.userId,
-			id: album.id
-		}});
+		res.status(200).send({
+			status: "success", data: {
+				title: album.title,
+				user_id: album.userId,
+				id: album.id
+			}
+		});
+	} catch (err) {
+		handlePrismaError(res, err);
+	}
+}
+
+//Update an album
+
+export const update = async (req: Request, res: Response) => {
+
+	const albumId = Number(req.params.albumId);
+
+	if (!albumId) {
+		res.status(400).send({ message: "Invalid Id" });
+		return;
+	}
+
+	//Få validerad data
+
+	try {
+		const album = await updateAlbum(albumId,); //Validerad data här
+		res.status(200).send({
+			status: "succes", data: {
+				title: album.title,
+				user_id: album.userId,
+				id: album.id,
+			}
+		});
+	} catch (err) {
+		handlePrismaError(res, err);
+	}
+}
+
+//Delete an album
+
+export const destroy = async (req: Request, res: Response) => {
+
+	const albumId = Number(req.params.albumId);
+
+	if (!albumId) {
+		res.status(400).send({ message: "Invalid Id" });
+		return;
+	}
+
+	try {
+		await deleteAlbum(albumId);
+		res.status(200).send({ status: "success", data: null});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}

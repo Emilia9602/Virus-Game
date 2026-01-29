@@ -1,5 +1,5 @@
 import express from "express";
-import { index, show, store } from "../controllers/album.controller.ts";
+import { destroy, index, show, store, update } from "../controllers/album.controller.ts";
 
 export const albumRouter = express.Router();
 
@@ -13,7 +13,7 @@ albumRouter.get("/:albumId", show);
 albumRouter.post("/", store); // Regler, validering
 
 //Update an album
-albumRouter.patch("/:albumId"); // Regler, validering, funktion
+albumRouter.patch("/:albumId", update); // Regler, validering
 
 //Add a photo to an album
 albumRouter.post("/:albumId/photos"); // Funktion
@@ -25,4 +25,4 @@ albumRouter.post("/:albumId/photos"); // Funktion
 albumRouter.delete("/:albumId/photos/:photoId"); // Funktion
 
 //Delete an album
-albumRouter.delete("/:albumId"); // Funktion
+albumRouter.delete("/:albumId", destroy);
