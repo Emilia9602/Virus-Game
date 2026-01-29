@@ -1,9 +1,10 @@
 import express from "express";
+import { index } from "../controllers/photos.controller.ts";
 
 export const photoRouter = express.Router();
 
 //Get all photos
-photoRouter.get("/"); // Funktion
+photoRouter.get("/", index);
 
 //Get a single photo
 photoRouter.get("/:photoId"); // Funktion

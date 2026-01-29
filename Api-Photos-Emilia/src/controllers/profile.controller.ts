@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { getUser } from "../services/user.service.ts"
+import { getUser, updateUser } from "../services/user.service.ts"
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
 
 //Get the user's profile
@@ -36,8 +36,9 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 	//Kolla lösenord
 
-	try {
-		const user = await up
+	try {  // data = id: email: first_name last_name
+		const user = await updateUser(userId, data);
+		res.status(200).send({ status: "success", data: user});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
