@@ -1,6 +1,7 @@
 import express from "express";
 import { destroy, index, show, store, update } from "../controllers/album.controller.ts";
 import { validateRequest } from "../middlewares/validateRequest.ts";
+import { createAlbumRules, updateAlbumRules } from "../rules/album.rules.ts";
 
 export const albumRouter = express.Router();
 
@@ -11,10 +12,10 @@ albumRouter.get("/", index);
 albumRouter.get("/:albumId", show);
 
 //Create a new album
-albumRouter.post("/", validateRequest, store); // Regler
+albumRouter.post("/", createAlbumRules, validateRequest, store);
 
 //Update an album
-albumRouter.patch("/:albumId", validateRequest, update); // Regler
+albumRouter.patch("/:albumId", updateAlbumRules, validateRequest, update);
 
 //Add a photo to an album
 albumRouter.post("/:albumId/photos"); // Funktion
