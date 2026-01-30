@@ -1,6 +1,7 @@
 import express from "express";
 import { getProfile, updateProfile } from "../controllers/profile.controller.ts";
 import { validateRequest } from "../middlewares/validateRequest.ts";
+import { updateUserRules } from "../rules/user.rules.ts";
 
 export const profileRouter = express.Router();
 
@@ -8,4 +9,4 @@ export const profileRouter = express.Router();
 profileRouter.get("/", getProfile);
 
 //Update the user's profile
-profileRouter.patch("/", validateRequest, updateProfile); // Regler
+profileRouter.patch("/", updateUserRules, validateRequest, updateProfile);
