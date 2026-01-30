@@ -1,14 +1,29 @@
 import { body } from "express-validator";
+import { getUserByEmail } from "../services/user.service.ts";
 
-//Validera om email redan finns
+//Validate if the email already exists
+
+/**
+ * @param email Email
+ * @returns
+ */
+
+const validateEmailDoesNotExist = async (email: string) => {
+
+	const user = await getUserByEmail(email);
+
+	if (user) {
+		throw new Error("Email already exists");
+	}
+}
 
 export const createUserRules = [
 	body("email")
 		.trim()
 		.isEmail()
 		.withMessage("has to be valid email")
-		.bail(),
-	//Validera email inte finns redan
+		.bail()
+		.custom(validateEmailDoesNotExist),
 
 	body("password")
 		.isString()
@@ -39,8 +54,8 @@ export const updateUserRules = [
 		.trim()
 		.isEmail()
 		.withMessage("has to be valid email")
-		.bail(),
-	//Validera email inte finns redan
+		.bail()
+		.custom(validateEmailDoesNotExist),
 
 	body("password")
 		.optional()
