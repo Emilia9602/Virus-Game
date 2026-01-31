@@ -1,4 +1,8 @@
 import express from "express";
+import { photoRouter } from "./photos.router.ts";
+import { albumRouter } from "./albums.router.ts";
+import { profileRouter } from "./profile.router.ts";
+import { authRouter } from "./auth.router.ts";
 
 // Create a Root router
 export const rootRouter = express.Router();
@@ -15,4 +19,10 @@ rootRouter.get("/", (_req, res) => {
  */
 // rootRouter.use("/resource", resourceRouter);
 
-// LÄGG IN ALLA ROUTER HÄR SEN
+rootRouter.use("/photos", photoRouter);
+
+rootRouter.use("/albums", albumRouter);
+
+rootRouter.use("/profile", profileRouter); //Validering
+
+rootRouter.use(authRouter);
