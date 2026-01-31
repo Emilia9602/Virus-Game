@@ -20,26 +20,26 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 	const [authScheme, token] = req.headers.authorization.split(" ");
 
 	if (authScheme.toLowerCase() !== "bearer") {
-		res.status(401).send({ status: "fail", data: { message: "Authorization header invalid"} });
+		res.status(401).send({ status: "fail", data: { message: "Authorization header invalid" } });
 		return;
 	}
 
 	try {
 
-	const payload = jwt.verify(token, AccesTokenSecret) as JWTAccessTokenPayload;
+		const payload = jwt.verify(token, AccesTokenSecret) as JWTAccessTokenPayload;
 
-	req.token = payload;
-	//SAKNAS något?
+		req.token = payload;
+		//SAKNAS något?
 
-	next();
+		next();
 
 	} catch (err) {
 		if (err instanceof jwt.TokenExpiredError) {
-			res.status(401).send({ status: "fail", data: { message: "Authorization token has expired"}});
+			res.status(401).send({ status: "fail", data: { message: "Authorization token has expired" } });
 			return;
 		}
 
-		res.status(401).send({ status: "fail", data: { message: "Authorization denied"}});
+		res.status(401).send({ status: "fail", data: { message: "Authorization denied" } });
 		return;
 	}
 }

@@ -1,14 +1,21 @@
 import { Request, Response } from "express"
 import { getUser, updateUser } from "../services/user.service.ts"
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
+import { matchedData } from "express-validator";
+import { UpdateUserData } from "../types/User.types.ts";
+import bcrypt from "bcrypt";
+
+const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
 
 //Get the user's profile
 
 export const getProfile = async (req: Request, res: Response) => {
 
-	//Token
+	if (!req.token) {
+		throw new Error("Authenticated user does not exist");
+	}
 
-	//Lägg in userId här från token
+	const userId = Number(req.token.sub);
 
 	const user = await getUser(userId);
 
@@ -28,15 +35,20 @@ export const getProfile = async (req: Request, res: Response) => {
 //Update the user's profile
 export const updateProfile = async (req: Request, res: Response) => {
 
-	//Token
+	if (!req.token) {
+		throw new Error("Authenticated user does not exist");
+	}
 
-	//UserId från token
+	const userId = Number(req.token.sub);
 
-	//Validerad data
+	const dataValidated = matchedData<UpdateUserData>(req);
+	const data = { ...dataValidated };
 
-	//Kolla lösenord
+	if (data.password) {
+		data.password = await bcrypt.hash(data.password, saltRounds);
+	}
 
-	try {  // data = id: email: first_name last_name
+	try {
 		const user = await updateUser(userId, data);
 		res.status(200).send({ status: "success", data: user});
 	} catch (err) {
