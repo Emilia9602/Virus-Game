@@ -1,5 +1,5 @@
 import express from "express";
-import { destroy, index, show, store, update } from "../controllers/album.controller.ts";
+import { addPhoto, destroy, index, removePhoto, show, store, update } from "../controllers/album.controller.ts";
 import { validateRequest } from "../middlewares/validateRequest.ts";
 import { createAlbumRules, updateAlbumRules } from "../rules/album.rules.ts";
 
@@ -18,13 +18,13 @@ albumRouter.post("/", createAlbumRules, validateRequest, store);
 albumRouter.patch("/:albumId", updateAlbumRules, validateRequest, update);
 
 //Add a photo to an album
-albumRouter.post("/:albumId/photos"); // Funktion
+albumRouter.post("/:albumId/photos", addPhoto);
 
 //Add multiple photos to an album
 // SAMMA som ovan med ett foto? Lägg in som en array ist för objekt?
 
 //Remove a photo from an album
-albumRouter.delete("/:albumId/photos/:photoId"); // Funktion
+albumRouter.delete("/:albumId/photos/:photoId", removePhoto);
 
 //Delete an album
 albumRouter.delete("/:albumId", destroy);

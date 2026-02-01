@@ -53,7 +53,7 @@ export const store = async (req: Request, res: Response) => {
 			url: photo.url,
 			comment: photo.comment,
 			user_id: //Den som skapa fotot
-			id: photo.id
+			id: photo.id,
 		}});
 	} catch (err) {
 		handlePrismaError(res, err);

@@ -1,5 +1,7 @@
+import { connect } from "node:http2";
 import { prisma } from "../lib/prisma.ts"
 import { CreateAlbumData, UpdateAlbumData } from "../types/Album.types.ts";
+import { PhotoId } from "../types/Photo.types.ts";
 
 //Get all albums
 
@@ -41,6 +43,49 @@ export const updateAlbum = async (albumId: number, data: UpdateAlbumData) => {
 	return prisma.album.update({
 		where: { id: albumId },
 		data,
+	});
+}
+
+//Add a photo or photos to an album
+
+/**
+ * @param albumId ID of the album to add a photo to
+ * @param photoIdOrIds ID(s) of the photo or photos to add
+ */
+
+export const addPhotoToAlbum = async (albumId: number, photoIdOrIds: PhotoId | PhotoId[]) => {
+	return prisma.album.update({
+		where: {
+			id: albumId,
+		},
+		data: {
+			photos: {
+				connect: photoIdOrIds,
+			},
+		},
+	});
+}
+
+//Remove a photo from an album
+
+/**
+ * @param albumId ID of the album to remove a photo from
+ * @param photoId ID of the photo to remove
+ * @returns
+ */
+
+export const removePhotoFromAlbum = async (albumId: number, photoId: number) => {
+	return prisma.album.update({
+		where: {
+			id: albumId,
+		},
+		data: {
+			photos: {
+				disconnect: {
+					id: photoId,
+				},
+			},
+		},
 	});
 }
 

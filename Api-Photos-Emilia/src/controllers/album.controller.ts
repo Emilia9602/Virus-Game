@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
-import { createAlbum, deleteAlbum, getAlbum, getAlbums, updateAlbum } from "../services/album.service.ts";
+import { addPhotoToAlbum, createAlbum, deleteAlbum, getAlbum, getAlbums, removePhotoFromAlbum, updateAlbum } from "../services/album.service.ts";
+import { PhotoId } from "../types/Photo.types.ts";
 
 //Get all albums
 
@@ -81,6 +82,44 @@ export const update = async (req: Request, res: Response) => {
 				id: album.id,
 			}
 		});
+	} catch (err) {
+		handlePrismaError(res, err);
+	}
+}
+
+//Add a photo or photos to an album
+
+export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoId | PhotoId[] >, res: Response) => {
+
+	const albumId = Number(req.params.albumId);
+
+	if (!albumId) {
+		res.status(400).send({ message: "Id Invalid"});
+		return;
+	}
+
+	try {
+		await addPhotoToAlbum(albumId, req.body);
+		res.status(200).send({ status: "succes", data: null });
+	} catch (err) {
+		handlePrismaError(res, err);
+	}
+}
+
+//Remove a photo from an album
+
+export const removePhoto = async (req:Request, res: Response) => {
+	const albumId = Number(req.params.albumId);
+	const photoId = Number(req.params.photoId);
+
+	if (!albumId || !photoId) {
+		res.status(400).send({ message: "Id Invalid"});
+		return;
+	}
+
+	try {
+		await removePhotoFromAlbum(albumId, photoId);
+		res.status(200).send({ status: "success", data: null });
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
