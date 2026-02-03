@@ -1,4 +1,3 @@
-import { connect } from "node:http2";
 import { prisma } from "../lib/prisma.ts"
 import { CreateAlbumData, UpdateAlbumData } from "../types/Album.types.ts";
 import { PhotoId } from "../types/Photo.types.ts";

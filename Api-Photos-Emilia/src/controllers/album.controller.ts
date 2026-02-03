@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
 import { addPhotoToAlbum, createAlbum, deleteAlbum, getAlbum, getAlbums, removePhotoFromAlbum, updateAlbum } from "../services/album.service.ts";
 import { PhotoId } from "../types/Photo.types.ts";
+import { matchedData } from "express-validator";
+import { CreateAlbumData, UpdateAlbumData } from "../types/Album.types.ts";
 
 //Get all albums
 
@@ -44,10 +46,10 @@ export const show = async (req: Request, res: Response) => {
 
 export const store = async (req: Request, res: Response) => {
 
-	//Få validerad data
+	const validatedData = matchedData<CreateAlbumData>(req);
 
 	try {
-		const album = await createAlbum(); //Validerad data
+		const album = await createAlbum(validatedData);
 		res.status(200).send({
 			status: "success", data: {
 				title: album.title,
@@ -71,10 +73,10 @@ export const update = async (req: Request, res: Response) => {
 		return;
 	}
 
-	//Få validerad data
+	const validatedData = matchedData<UpdateAlbumData>(req);
 
 	try {
-		const album = await updateAlbum(albumId,); //Validerad data här
+		const album = await updateAlbum(albumId, validatedData);
 		res.status(200).send({
 			status: "succes", data: {
 				title: album.title,

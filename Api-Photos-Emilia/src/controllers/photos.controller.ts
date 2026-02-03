@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
 import { createPhoto, deletePhoto, getPhoto, getPhotos, updatePhoto } from "../services/photo.service.ts";
+import { matchedData } from "express-validator";
+import { CreatePhotoData, UpdatePhotoData } from "../types/Photo.types.ts";
 
 // Get all photos
 
@@ -44,16 +46,16 @@ export const show = async (req: Request, res: Response) => {
 
 export const store = async (req: Request, res: Response) => {
 
-	//Hämta validerad data
+	const validatedData = matchedData<CreatePhotoData>(req);
 
 	try {
-		const photo = await createPhoto(); //Validerad data här
+		const photo = await createPhoto(validatedData);
 		res.status(201).send({ status: "success", data: {
 			title: photo.title,
 			url: photo.url,
 			comment: photo.comment,
-			user_id: //Den som skapa fotot
-			id: photo.id,
+			//user_id: //Den som skapa fotot
+			//id: photo.id,
 		}});
 	} catch (err) {
 		handlePrismaError(res, err);
@@ -71,16 +73,16 @@ export const update = async (req: Request, res: Response) => {
 		return;
 	}
 
-	//Få validerad data här
+	const validatedData = matchedData<UpdatePhotoData>(req);
 
 	try {
-		const photo = await updatePhoto(photoId, ); //Validerad data
+		const photo = await updatePhoto(photoId, validatedData);
 		res.status(200).send({ status: "success", data: {
 			title: photo.title,
 			url: photo.url,
 			comment: photo.comment,
-			user_id: //user id?
-			id: photo.id,
+			//user_id: //user id?
+			//id: photo.id,
 		}});
 	} catch (err) {
 		handlePrismaError(res, err);
