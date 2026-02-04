@@ -54,7 +54,7 @@ export const store = async (req: Request, res: Response) => {
 			status: "success", data: {
 				title: album.title,
 				user_id: album.userId,
-				id: album.id
+				id: album.id,
 			}
 		});
 	} catch (err) {

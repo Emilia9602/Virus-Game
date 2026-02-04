@@ -1,17 +1,37 @@
 import { Request, Response } from "express"
 import { handlePrismaError } from "../lib/handlePrismaError.ts"
-import { createUser, getUserByEmail } from "../services/user.service.ts";
+import { createUser, getUser, getUserByEmail } from "../services/user.service.ts";
+import { StringValue } from "ms";
+import { matchedData } from "express-validator";
+import bcrypt from "bcrypt";
+import { JWTAccessTokenPayload, JWTRefreshTokenPayload } from "../types/JWT.types.ts";
+import jwt from "jsonwebtoken";
+import { CreateUserData } from "../types/User.types.ts";
+
+const AccessTokenLifetime = process.env.ACCESS_TOKEN_LIFETIME as StringValue || "4h";
+const AccessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+const RefreshTokenLifetime = process.env.REFRESH_TOKEN_LIFETIME as StringValue || "1d";
+const RefreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
+const SaltRounds = Number(process.env.SALT_ROUNDS) || 10;
+
+if (!AccessTokenSecret) {
+	throw new Error("no ACCESS_TOKEN_SECRET could be found");
+}
+
+if (!RefreshTokenSecret) {
+	throw new Error("no ACCESS_TOKEN_SECRET could be found");
+}
 
 export const register = async (req: Request, res: Response) => {
 
-	//Validerad data
+	const validatedData = matchedData<CreateUserData>(req);
 
-	//Hash + salt lösenord
+	const hashedPassword = await bcrypt.hash(validatedData.password, SaltRounds);
 
 	try {
 		const user = await createUser({
-			//Validerad data
-			//Hash lösenord
+			...validatedData,
+			password: hashedPassword,
 		});
 
 		res.status(200).send({
@@ -29,7 +49,7 @@ export const register = async (req: Request, res: Response) => {
 }
 
 interface LoginData {
-	email: String;
+	email: string;
 	password: string;
 }
 
@@ -37,45 +57,103 @@ interface LoginData {
 
 export const login = async (req: Request, res: Response) => {
 
-	//Få validerad data
+	const { email, password } = matchedData<LoginData>(req);
 
 	const user = await getUserByEmail(email);
 
 	if (!user) {
 		//Debug här
-		res.status(401).send({ status: "fail", data: { message: "Authorization invaild" }});
+		res.status(401).send({ status: "fail", data: { message: "Authorization invaild" } });
 		return;
 	}
 
-	//Är lösenordet rätt?
+	const correctPassword = await bcrypt.compare(password, user.password);
 
-	//JWT access token här
+	if (!correctPassword) {
+		res.status(401).send({ status: "fail", data: { message: "Invalid Authorization" } });
+		return;
+	}
 
-	//Signera payload
+	const payload: JWTAccessTokenPayload = {
+		sub: String(user.id),
+		email: user.email,
+		first_name: user.first_name,
+		last_name: user.last_name,
+	}
 
-	//JWT refresh token payload här
+	const access_token = jwt.sign(payload, AccessTokenSecret, {
+		expiresIn: AccessTokenLifetime,
+	});
 
-	//Signera refresh payload med refresh token secret
+	const refresh_payload: JWTRefreshTokenPayload = {
+		sub: String(user.id),
+	}
 
-	//Refresh token som en cookie
+	const refresh_token = jwt.sign(refresh_payload, RefreshTokenSecret, {
+		expiresIn: RefreshTokenLifetime,
+	});
 
-	//Svara med access token res.send()
+	res.cookie("refresh_token", refresh_token, {
+		httpOnly: true,
+		sameSite: "strict",
+		path: "/refresh",
+	});
+
+	res.send({
+		status: "success",
+		data: {
+			access_token,
+		},
+	});
 }
 
 //Issue a new access_token using a refresh_token
 
 export const refresh = async (req: Request, res: Response) => {
 
-	//Få refresh token från cookie
+	const refresh_token = (req.cookies as { refresh_token?: string }).refresh_token;
 
-	//verifiera token, få payload med id(sub)
-	//Try catch här
+	if (!refresh_token) {
+		res.status(401).send({ status: "fail", data: { message: "Authorization reguired" } });
+		return;
+	}
 
-	//Hitta rätt user med id
+	let refresh_payload: JWTRefreshTokenPayload;
 
-	//Få ny access token
+	try {
+		refresh_payload = jwt.verify(refresh_token, RefreshTokenSecret) as JWTRefreshTokenPayload;
+	} catch (err) {
+		if (err instanceof jwt.TokenExpiredError) {
+			res.status(401).send({ status: "fail", data: { message: "Refresh token expired" } });
+			return;
+		}
 
-	//Signera payload med access token secret
+		res.status(401).send({ status: "fail", data: { message: "Athorization denied" } });
+		return;
+	}
 
-	//Svara med nya access token res.send()
+	const userId = Number(refresh_payload.sub);
+	const user = await getUser(userId);
+
+	if (!user) {
+		res.status(401).send({ status: "fail", data: { message: "Athorization denied" } });
+		return;
+	}
+
+	const access_payload: JWTAccessTokenPayload = {
+		sub: String(user.id),
+		email: user.email,
+		first_name: user.first_name,
+		last_name: user.last_name,
+	}
+
+	const access_token = jwt.sign(access_payload, AccessTokenSecret, {
+		expiresIn: AccessTokenLifetime,
+	});
+
+	res.send({
+		status: "success", data: {
+			access_token,
+		},
+	});
 }
