@@ -123,6 +123,11 @@ export const update = async (req: Request, res: Response) => {
 
 	try {
 		const photo = await updatePhoto(photoId, userId, validatedData);
+
+		if (userId !== validatedData.userId) {
+		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+		return;
+	}
 		res.status(200).send({
 			status: "success", data: {
 				title: photo.title,
