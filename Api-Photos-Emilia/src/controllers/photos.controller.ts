@@ -119,15 +119,18 @@ export const update = async (req: Request, res: Response) => {
 		return;
 	}
 
+	const photos = getPhotos(userId)
+
+	if (!photos) {
+		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+		return;
+	}
+
 	const validatedData = matchedData<UpdatePhotoData>(req);
 
 	try {
 		const photo = await updatePhoto(photoId, userId, validatedData);
 
-		if (userId !== validatedData.userId) {
-		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
-		return;
-	}
 		res.status(200).send({
 			status: "success", data: {
 				title: photo.title,
@@ -164,8 +167,15 @@ export const destroy = async (req: Request, res: Response) => {
 		return;
 	}
 
+	const photos = getPhotos(userId)
+
+	if (!photos) {
+		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+		return;
+	}
+
 	try {
-		await deletePhoto(photoId);
+		await deletePhoto(photoId, userId);
 		res.status(200).send({ status: "success", data: null });
 	} catch (err) {
 		handlePrismaError(res, err);

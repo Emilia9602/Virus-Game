@@ -4,6 +4,7 @@ import { addPhotoToAlbum, createAlbum, deleteAlbum, getAlbum, getAlbums, removeP
 import { PhotoId } from "../types/Photo.types.ts";
 import { matchedData } from "express-validator";
 import { CreateAlbumData, UpdateAlbumData } from "../types/Album.types.ts";
+import { getPhotos } from "../services/photo.service.ts";
 
 //Get all albums
 
@@ -134,6 +135,13 @@ export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoI
 	const userId = Number(req.token.sub);
 
 	if (!userId) {
+		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+		return;
+	}
+
+	const photos = getPhotos(userId)
+
+	if (!photos) {
 		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
 		return;
 	}
