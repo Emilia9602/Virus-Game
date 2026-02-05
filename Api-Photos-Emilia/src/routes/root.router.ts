@@ -12,7 +12,7 @@ export const rootRouter = express.Router();
  * GET /
  */
 rootRouter.get("/", (_req, res) => {
-	res.send({ status: "success", data: { message: "But first, let me take a selfie 🤳 https://www.youtube.com/watch?v=kdemFfbS5H0" }});
+	res.send({ status: "success", data: { message: "But first, let me take a selfie 🤳 https://www.youtube.com/watch?v=kdemFfbS5H0" } });
 });
 
 /**

@@ -4,20 +4,31 @@ import { PhotoId } from "../types/Photo.types.ts";
 
 //Get all albums
 
-export const getAlbums = () => {
-	return prisma.album.findMany();
+/**
+ *
+ * @param userId ID of the user to get their albums
+ * @returns
+ */
+export const getAlbums = (userId: number) => {
+	return prisma.album.findMany({
+		where: {
+			userId: userId,
+		},
+	});
 }
 
 //Get a single album
 
 /**
  * @param albumId ID of the albuum to get
+ * @param userId ID of the user to get their album
  */
 
-export const getAlbum = (albumId: number) => {
+export const getAlbum = (albumId: number, userId: number) => {
 	return prisma.album.findUniqueOrThrow({
 		where: {
 			id: albumId,
+			userId: userId,
 		},
 		include: {
 			photos: true,
@@ -56,12 +67,14 @@ export const updateAlbum = async (albumId: number, data: UpdateAlbumData) => {
 /**
  * @param albumId ID of the album to add a photo to
  * @param photoIdOrIds ID(s) of the photo or photos to add
+ * @param userId ID of the user to add photo(s) to their album
  */
 
-export const addPhotoToAlbum = async (albumId: number, photoIdOrIds: PhotoId | PhotoId[]) => {
+export const addPhotoToAlbum = async (albumId: number, userId: number, photoIdOrIds: PhotoId | PhotoId[]) => {
 	return prisma.album.update({
 		where: {
 			id: albumId,
+			userId: userId,
 		},
 		data: {
 			photos: {

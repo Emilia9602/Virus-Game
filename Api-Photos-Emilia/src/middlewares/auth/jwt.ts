@@ -1,5 +1,3 @@
-//Kolla om du ska lägga in debug här
-
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { JWTAccessTokenPayload } from "../../types/JWT.types.ts";

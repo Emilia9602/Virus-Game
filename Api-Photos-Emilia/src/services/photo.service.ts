@@ -3,14 +3,20 @@ import { CreatePhotoData, UpdatePhotoData } from "../types/Photo.types.ts";
 
 //Get all photos
 
-export const getPhotos = () => {
+/**
+ * @param userId ID of the user to get user's photos
+ * @returns
+ */
+
+export const getPhotos = (userId: number) => {
 	return prisma.photo.findMany({
+		where: { userId: userId },
 		select: {
 			id: true,
-			url: true,
 			title: true,
+			url: true,
 			comment: true,
-		},
+		}
 	});
 }
 
@@ -18,12 +24,14 @@ export const getPhotos = () => {
 
 /**
  * @param photoId ID of the photo to get
+ * @param userId ID of the user to get their photo
  */
 
-export const getPhoto = (photoId: number) => {
+export const getPhoto = (photoId: number, userId: number) => {
 	return prisma.photo.findUniqueOrThrow({
 		where: {
 			id: photoId,
+			userId: userId
 		},
 	})
 }
@@ -49,13 +57,17 @@ export const createPhoto = async (data: CreatePhotoData, userId: number) => {
 
 /**
  * @param photoId ID of the photo to update
+ * @param userId ID of the user to update their photo
  * @param data Photo data
  * @returns
  */
 
-export const updatePhoto = async (photoId: number, data: UpdatePhotoData) => {
+export const updatePhoto = async (photoId: number, userId: number, data: UpdatePhotoData) => {
 	return prisma.photo.update({
-		where: { id: photoId },
+		where: {
+			id: photoId,
+			userId: userId,
+		},
 		data,
 	});
 }

@@ -9,7 +9,7 @@ import { CreateUserData, UpdateUserData } from "../types/User.types.ts";
 
 export const getUser = async (id: number) => {
 	return await prisma.user.findUnique({
-		where: { id},
+		where: { id },
 	});
 }
 

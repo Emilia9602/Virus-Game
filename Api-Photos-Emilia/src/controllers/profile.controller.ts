@@ -20,16 +20,18 @@ export const getProfile = async (req: Request, res: Response) => {
 	const user = await getUser(userId);
 
 	if (!user) {
-		res.status(404).send({ status: "fail", data: { message: "User Not Found"} });
+		res.status(404).send({ status: "fail", data: { message: "User Not Found" } });
 		return;
 	}
 
-	res.status(200).send({ status: "success", data: {
-		id: user.id,
-		email: user.email,
-		first_name: user.first_name,
-		last_name: user.last_name,
-	}});
+	res.status(200).send({
+		status: "success", data: {
+			id: user.id,
+			email: user.email,
+			first_name: user.first_name,
+			last_name: user.last_name,
+		}
+	});
 }
 
 //Update the user's profile
@@ -50,12 +52,14 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 	try {
 		const user = await updateUser(userId, data);
-		res.status(200).send({ status: "success", data: {
-			id: user.id,
-			email: user.email,
-			first_name: user.first_name,
-			last_name: user.last_name,
-		}});
+		res.status(200).send({
+			status: "success", data: {
+				id: user.id,
+				email: user.email,
+				first_name: user.first_name,
+				last_name: user.last_name,
+			}
+		});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}

@@ -7,9 +7,20 @@ import { CreateAlbumData, UpdateAlbumData } from "../types/Album.types.ts";
 
 //Get all albums
 
-export const index = async (_req: Request, res: Response) => {
+export const index = async (req: Request, res: Response) => {
+	if (!req.token) {
+		throw new Error("Authenticated user does not exist");
+	}
+
+	const userId = Number(req.token.sub);
+
+	if (!userId) {
+		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+		return;
+	}
+
 	try {
-		const albums = await getAlbums();
+		const albums = await getAlbums(userId);
 		res.status(200).send({ status: "success", data: albums });
 	} catch (err) {
 		handlePrismaError(res, err);
@@ -27,8 +38,19 @@ export const show = async (req: Request, res: Response) => {
 		return;
 	}
 
+	if (!req.token) {
+		throw new Error("Authenticated user does not exist");
+	}
+
+	const userId = Number(req.token.sub);
+
+	if (!userId) {
+		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+		return;
+	}
+
 	try {
-		const album = await getAlbum(albumId);
+		const album = await getAlbum(albumId, userId);
 		res.status(200).send({
 			status: "success", data: {
 				id: album.id,
@@ -83,7 +105,7 @@ export const update = async (req: Request, res: Response) => {
 	try {
 		const album = await updateAlbum(albumId, validatedData);
 		res.status(200).send({
-			status: "succes", data: {
+			status: "success", data: {
 				title: album.title,
 				user_id: album.userId,
 				id: album.id,
@@ -105,9 +127,20 @@ export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoI
 		return;
 	}
 
+	if (!req.token) {
+		throw new Error("Authenticated user does not exist");
+	}
+
+	const userId = Number(req.token.sub);
+
+	if (!userId) {
+		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+		return;
+	}
+
 	try {
-		await addPhotoToAlbum(albumId, req.body);
-		res.status(200).send({ status: "succes", data: null });
+		await addPhotoToAlbum(albumId, userId, req.body);
+		res.status(200).send({ status: "success", data: null });
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
