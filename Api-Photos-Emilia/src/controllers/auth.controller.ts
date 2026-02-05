@@ -62,7 +62,6 @@ export const login = async (req: Request, res: Response) => {
 	const user = await getUserByEmail(email);
 
 	if (!user) {
-		//Debug här
 		res.status(401).send({ status: "fail", data: { message: "Authorization invaild" } });
 		return;
 	}

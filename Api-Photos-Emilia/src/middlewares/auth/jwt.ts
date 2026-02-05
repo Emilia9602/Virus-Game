@@ -29,7 +29,6 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 		const payload = jwt.verify(token, AccesTokenSecret) as JWTAccessTokenPayload;
 
 		req.token = payload;
-		//SAKNAS något?
 
 		next();
 

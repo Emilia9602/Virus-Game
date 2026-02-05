@@ -4,7 +4,14 @@ import { CreatePhotoData, UpdatePhotoData } from "../types/Photo.types.ts";
 //Get all photos
 
 export const getPhotos = () => {
-	return prisma.photo.findMany();
+	return prisma.photo.findMany({
+		select: {
+			id: true,
+			url: true,
+			title: true,
+			comment: true,
+		},
+	});
 }
 
 //Get a photo
@@ -27,9 +34,14 @@ export const getPhoto = (photoId: number) => {
  * @param data Photo data
  */
 
-export const createPhoto = async (data: CreatePhotoData) => {
+export const createPhoto = async (data: CreatePhotoData, userId: number) => {
 	return prisma.photo.create({
-		data,
+		data: {
+			title: data.title,
+			url: data.url,
+			comment: data.comment,
+			userId: userId,
+		}
 	});
 }
 

@@ -1,17 +1,17 @@
 {
   "name": "fed25-api-prisma-boilerplate",
   "version": "1.0.0",
-  "main": "dist/server.ts",
+  "main": "dist/server.js",
   "scripts": {
-    "build": "env-cmd --silent bash scripts/build.sh",
-    "build-app": "npm run lint && npm run typecheck && node scripts/build.js",
+    "build": "npx prisma generate && node scripts/build.js",
     "check": "run-s lint typecheck type-coverage",
     "debug": "cross-env DEBUG=prisma-boilerplate:* tsx --watch src/server.ts",
     "dev": "cross-env DEBUG=prisma-boilerplate:* tsx --watch src/server.ts",
     "lint": "eslint .",
+    "pre-deploy": "npx prisma migrate deploy && npx prisma db seed",
     "typecheck": "tsc --noEmit",
-    "type-coverage": "type-coverage -p tsconfig.json --at-least 99 --detail --ignore-files \"generated/prisma/internal/*.ts\" --ignore-files \"prisma/seed.ts\"",
-    "start": "tsx src/server.ts"
+    "type-coverage": "type-coverage -p tsconfig.json --at-least 99 --detail --ignore-files \"generated/**/*.ts\" --ignore-files \"prisma/seed.ts\"",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "Johan Nordström <johan@digitalvillage.se>",
@@ -21,6 +21,7 @@
     "@prisma/adapter-mariadb": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cross-env": "^10.1.0",
     "debug": "^4.4.3",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.6",

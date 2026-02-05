@@ -19,14 +19,20 @@ export const getAlbum = (albumId: number) => {
 		where: {
 			id: albumId,
 		},
+		include: {
+			photos: true,
+		},
 	});
 }
 
 //Create a new album
 
-export const createAlbum = async (data: CreateAlbumData) => {
+export const createAlbum = async (data: CreateAlbumData, userId: number) => {
 	return prisma.album.create({
-		data,
+		data: {
+			title: data.title,
+			userId: userId,
+		}
 	});
 }
 

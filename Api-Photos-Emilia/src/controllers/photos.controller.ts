@@ -46,15 +46,24 @@ export const show = async (req: Request, res: Response) => {
 
 export const store = async (req: Request, res: Response) => {
 
+	if (!req.token) {
+		throw new Error("Authenticated user does not exist");
+	}
+
 	const validatedData = matchedData<CreatePhotoData>(req);
+	const userId = Number(req.token.sub);
 
 	try {
-		const photo = await createPhoto(validatedData);
-		res.status(201).send({ status: "success", data: {
-			title: photo.title,
-			url: photo.url,
-			comment: photo.comment,
-		}});
+		const photo = await createPhoto(validatedData, userId);
+		res.status(201).send({
+			status: "success", data: {
+				title: photo.title,
+				url: photo.url,
+				comment: photo.comment,
+				user_id: photo.userId,
+				id: photo.id
+			}
+		});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
@@ -75,13 +84,15 @@ export const update = async (req: Request, res: Response) => {
 
 	try {
 		const photo = await updatePhoto(photoId, validatedData);
-		res.status(200).send({ status: "success", data: {
-			title: photo.title,
-			url: photo.url,
-			comment: photo.comment,
-			//user_id: //user id?
-			//id: photo.id,
-		}});
+		res.status(200).send({
+			status: "success", data: {
+				title: photo.title,
+				url: photo.url,
+				comment: photo.comment,
+				//user_id: //user id?
+				//id: photo.id,
+			}
+		});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
@@ -100,7 +111,7 @@ export const destroy = async (req: Request, res: Response) => {
 
 	try {  //Kolla så den raderar länkarna till albumen, men inte själva albumen
 		await deletePhoto(photoId);
-		res.status(200).send({ status: "success", data: null});
+		res.status(200).send({ status: "success", data: null });
 	} catch (err) {
 		handlePrismaError(res, err);
 	}

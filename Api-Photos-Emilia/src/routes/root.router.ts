@@ -3,6 +3,7 @@ import { photoRouter } from "./photos.router.ts";
 import { albumRouter } from "./albums.router.ts";
 import { profileRouter } from "./profile.router.ts";
 import { authRouter } from "./auth.router.ts";
+import { verifyToken } from "../middlewares/auth/jwt.ts";
 
 // Create a Root router
 export const rootRouter = express.Router();
@@ -19,10 +20,10 @@ rootRouter.get("/", (_req, res) => {
  */
 // rootRouter.use("/resource", resourceRouter);
 
-rootRouter.use("/photos", photoRouter);
+rootRouter.use("/photos", verifyToken, photoRouter);
 
-rootRouter.use("/albums", albumRouter);
+rootRouter.use("/albums", verifyToken, albumRouter);
 
-rootRouter.use("/profile", profileRouter); //Validering
+rootRouter.use("/profile", verifyToken, profileRouter);
 
 rootRouter.use(authRouter);

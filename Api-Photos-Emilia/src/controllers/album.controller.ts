@@ -11,7 +11,6 @@ export const index = async (_req: Request, res: Response) => {
 	try {
 		const albums = await getAlbums();
 		res.status(200).send({ status: "success", data: albums });
-		//Få rätt svar här sen
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
@@ -34,7 +33,7 @@ export const show = async (req: Request, res: Response) => {
 			status: "success", data: {
 				id: album.id,
 				title: album.title,
-				//Ha med foton här
+				photos: album.photos,
 			}
 		});
 	} catch (err) {
@@ -46,15 +45,21 @@ export const show = async (req: Request, res: Response) => {
 
 export const store = async (req: Request, res: Response) => {
 
+	if (!req.token) {
+		throw new Error("Authenticated user does not exist");
+	}
+
 	const validatedData = matchedData<CreateAlbumData>(req);
+	const userId = Number(req.token.sub);
 
 	try {
-		const album = await createAlbum(validatedData);
+		const album = await createAlbum(validatedData, userId);
+
 		res.status(200).send({
 			status: "success", data: {
 				title: album.title,
-				user_id: album.userId,
-				id: album.id,
+				userId: album.userId,
+				id: album.id
 			}
 		});
 	} catch (err) {
@@ -91,12 +96,12 @@ export const update = async (req: Request, res: Response) => {
 
 //Add a photo or photos to an album
 
-export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoId | PhotoId[] >, res: Response) => {
+export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoId | PhotoId[]>, res: Response) => {
 
 	const albumId = Number(req.params.albumId);
 
 	if (!albumId) {
-		res.status(400).send({ message: "Id Invalid"});
+		res.status(400).send({ message: "Id Invalid" });
 		return;
 	}
 
@@ -110,12 +115,12 @@ export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoI
 
 //Remove a photo from an album
 
-export const removePhoto = async (req:Request, res: Response) => {
+export const removePhoto = async (req: Request, res: Response) => {
 	const albumId = Number(req.params.albumId);
 	const photoId = Number(req.params.photoId);
 
 	if (!albumId || !photoId) {
-		res.status(400).send({ message: "Id Invalid"});
+		res.status(400).send({ message: "Id Invalid" });
 		return;
 	}
 
@@ -140,7 +145,7 @@ export const destroy = async (req: Request, res: Response) => {
 
 	try {
 		await deleteAlbum(albumId);
-		res.status(200).send({ status: "success", data: null});
+		res.status(200).send({ status: "success", data: null });
 	} catch (err) {
 		handlePrismaError(res, err);
 	}

@@ -50,7 +50,12 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 	try {
 		const user = await updateUser(userId, data);
-		res.status(200).send({ status: "success", data: user});
+		res.status(200).send({ status: "success", data: {
+			id: user.id,
+			email: user.email,
+			first_name: user.first_name,
+			last_name: user.last_name,
+		}});
 	} catch (err) {
 		handlePrismaError(res, err);
 	}
