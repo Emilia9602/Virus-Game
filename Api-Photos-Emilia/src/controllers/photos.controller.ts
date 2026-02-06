@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { handlePrismaError } from "../lib/handlePrismaError.ts";
-import { createPhoto, deletePhoto, getPhoto, getPhotos, getPhotoUSerId, updatePhoto } from "../services/photo.service.ts";
+import { createPhoto, deletePhoto, getPhoto, getPhotos, getPhotoUserId, updatePhoto } from "../services/photo.service.ts";
 import { matchedData } from "express-validator";
 import { CreatePhotoData, UpdatePhotoData } from "../types/Photo.types.ts";
 
@@ -119,14 +119,9 @@ export const update = async (req: Request, res: Response) => {
 		return;
 	}
 
-	const photos = await getPhotoUSerId(userId)
+	const photoUserId = await getPhotoUserId(photoId);
 
-	if (!photos) {
-		res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
-		return;
-	}
-
-	photos.forEach((photo) => {
+	photoUserId.map((photo) => {
 		if (photo.userId !== userId) {
 			res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
 			return;

@@ -20,15 +20,17 @@ export const getPhotos = (userId: number) => {
 	});
 }
 
+//Get photos userId
+
 /**
  *
- * @param userId ID of the user to get their photo(s)
+ * @param photoId ID of the photo to get
  * @returns
  */
 
-export const getPhotoUSerId = (userId: number) => {
+export const getPhotoUserId = (photoId: number) => {
 	return prisma.photo.findMany({
-		where: { userId: userId},
+		where: { id: photoId },
 		select: {
 			userId: true,
 		},
