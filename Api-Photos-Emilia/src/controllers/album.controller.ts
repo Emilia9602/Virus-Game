@@ -4,7 +4,6 @@ import { addPhotoToAlbum, createAlbum, deleteAlbum, getAlbum, getAlbums, removeP
 import { PhotoId } from "../types/Photo.types.ts";
 import { matchedData } from "express-validator";
 import { CreateAlbumData, UpdateAlbumData } from "../types/Album.types.ts";
-import { getPhotoUserIds } from "../services/photo.service.ts";
 
 //Get all albums
 
@@ -119,7 +118,7 @@ export const update = async (req: Request, res: Response) => {
 
 //Add a photo or photos to an album
 
-export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoId | PhotoId[]>, res: Response) => {
+export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoId[]>, res: Response) => {
 
 	const albumId = Number(req.params.albumId);
 
@@ -139,19 +138,14 @@ export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoI
 		return;
 	}
 
-	const photoUserIds = await getPhotoUserIds(userId);
-
-	photoUserIds.map((photo) => {
-		if (photo.userId !== userId) {
-			res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
-			return;
-		}
-	});
-
 	try {
 		await addPhotoToAlbum(albumId, userId, req.body);
 		res.status(200).send({ status: "success", data: null });
 	} catch (err) {
+		if (err instanceof Error && err.message.includes("One or more photos could not be found")) {
+			res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
+			return;
+		}
 		handlePrismaError(res, err);
 	}
 }

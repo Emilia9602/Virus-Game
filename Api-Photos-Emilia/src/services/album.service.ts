@@ -70,7 +70,20 @@ export const updateAlbum = async (albumId: number, data: UpdateAlbumData) => {
  * @param userId ID of the user to add photo(s) to their album
  */
 
-export const addPhotoToAlbum = async (albumId: number, userId: number, photoIdOrIds: PhotoId | PhotoId[]) => {
+export const addPhotoToAlbum = async (albumId: number, userId: number, photoIdOrIds: PhotoId[]) => {
+	const photoUserIds = await prisma.photo.findMany({
+		where: {
+			id: {
+				in: photoIdOrIds.map(photo => photo.id)
+			},
+			userId: userId
+		}
+	});
+
+	if (photoUserIds.length !== photoIdOrIds.length) {
+		throw new Error("One or more photos could not be found");
+	}
+
 	return prisma.album.update({
 		where: {
 			id: albumId,
