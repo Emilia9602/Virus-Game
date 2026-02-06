@@ -4,7 +4,7 @@ import { addPhotoToAlbum, createAlbum, deleteAlbum, getAlbum, getAlbums, removeP
 import { PhotoId } from "../types/Photo.types.ts";
 import { matchedData } from "express-validator";
 import { CreateAlbumData, UpdateAlbumData } from "../types/Album.types.ts";
-import { getPhotoUserId } from "../services/photo.service.ts";
+import { getPhotoUserIds } from "../services/photo.service.ts";
 
 //Get all albums
 
@@ -139,11 +139,9 @@ export const addPhoto = async (req: Request<{ albumId: string }, unknown, PhotoI
 		return;
 	}
 
-	const photoIdOrIds = Number(req.body);
+	const photoUserIds = await getPhotoUserIds(userId);
 
-	const photoUserId = await getPhotoUserId(photoIdOrIds);
-
-	photoUserId.map((photo) => {
+	photoUserIds.map((photo) => {
 		if (photo.userId !== userId) {
 			res.status(403).send({ status: "fail", data: { message: "Access forbidden" } });
 			return;
