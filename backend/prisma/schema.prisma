@@ -13,3 +13,15 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+model Player {
+  id       String @id @map("_id")
+  username String
+  roomId   String
+  room     Room   @relation(fields: [roomId], references: [id])
+}
+
+model Room {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  players Player[]
+}
