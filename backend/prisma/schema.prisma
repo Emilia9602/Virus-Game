@@ -18,10 +18,27 @@ model Player {
   id       String @id @map("_id")
   username String
   roomId   String
+  score    Int     @default(0)
+  reactionTime Int @default(0)
+
   room     Room   @relation(fields: [roomId], references: [id])
 }
 
-model Room {
+model Room { // GameRoom kanske passar böttre här
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameOver Boolean  @default(false)
+  gameRound Int @default(0)
+
   players Player[]
 }
+
+model PostGame {
+id String @id @default(auto()) @map("_id") @db.ObjectId
+player1UserName String
+player1Score Int
+player2UserName String
+player2Score Int
+
+}
+
+
