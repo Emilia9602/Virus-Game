@@ -1,6 +1,5 @@
-import { Player } from "@shared/types/Models.types.ts"
-import { prisma } from "../lib/prisma.ts"
-
+import { Player } from "@shared/types/Models.types.ts";
+import { prisma } from "../lib/prisma.ts";
 
 //Create player
 /**
@@ -12,37 +11,112 @@ import { prisma } from "../lib/prisma.ts"
 export const createPlayer = (data: Player) => {
 	return prisma.player.upsert({
 		where: {
-			id: data.id
+			id: data.id,
 		},
 
-	create: data,
-	update: {
-		username: data.username,
-		gameRoomId: data.gameRoomId
-	},
-
+		create: data,
+		update: {
+			username: data.username,
+			gameRoomId: data.gameRoomId,
+		},
 	});
-}
+};
 
-//Get players in the room
+//Get all players in the room
 /**
  *
  * @param gameRoomId  ID of the room
  * @returns Players in the room
  */
 
-export const getPlayersInRoom = async(gameRoomId : string) => {
+export const getPlayersInRoom = async (gameRoomId: string) => {
 	return await prisma.player.findMany({
-		where: { gameRoomId: gameRoomId  },
+		where: { gameRoomId: gameRoomId },
 	});
-}
+};
 
-
-//Get player in the room
+//Get a single player in the room
 /**
  *
- * @param gameRoomId  ID of the room
+ * @param playerId  ID of the player
  * @returns Player in the room
  */
 
-//export const getPlayerInRoom = async(gameRoomId : string) => {}
+export const getPlayerInRoom = (playerId: string) => {
+	return prisma.player.findUnique({
+		where: { id: playerId },
+	});
+};
+
+//Update  Player's reaktionstid
+/**
+ *
+ * @param playerId  ID of the player
+ * @returns Player in the room
+ */
+
+export const updatePlayerTimer = async (playerId: string, reactionTime: number) => {
+	return await prisma.player.update({
+		where: { id: playerId },
+		data: { reactionTime },
+	});
+};
+
+//Reset Player's reaktionstid
+/**
+ *
+ * @param playerId  ID of the player
+ * @returns Player in the room
+ * Starta en ny runda o nollstall reaktiontiden
+ */
+
+export const resetPlayerTimer = async (gameRoomId: string) => {
+	return await prisma.player.updateMany({
+		where: { gameRoomId },
+		data: { reactionTime: 0 },
+	});
+};
+
+// Update Player's game scores
+/**
+ *
+ * @param playerId  ID of the player
+ * @returns
+ */
+
+export const updatePlayerScores = async (playerId: string) => {
+	return await prisma.player.update({
+		where: { id: playerId },
+		data: {
+			score: {
+				increment: 1,
+			},
+		},
+	});
+};
+
+//Reset Player's game scores
+/**
+ *
+ * @param playerId  ID of the player
+ * @returns Player in the room
+ */
+
+export const resetPlayerScores = async (playerId: string) => {
+	return await prisma.player.update({
+		where: { id: playerId },
+		data: { score: 0 },
+	});
+};
+
+//Delete player in the room // Disconnect Player from GameRoom
+/**
+ *
+ * @param playerId  ID of the player
+ * @returns Player in the room
+ */
+export const deletePlayerInRoom = (playerId: string) => {
+	prisma.player.delete({
+		where: { id: playerId },
+	});
+};
