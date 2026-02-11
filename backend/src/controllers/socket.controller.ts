@@ -5,6 +5,8 @@ import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/Socket
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { prisma } from "../lib/prisma.ts";
+import { createPlayer, getPlayersInRoom } from "../services/player.service.ts";
+import { createRoom } from "../services/room.service.ts";
 
 // Create a new debug instance
 const debug = Debug("backend:socket_controller");
@@ -23,25 +25,30 @@ export const handleConnection = (
 		debug("👋 A user disconnected with id: %s", socket.id);
 	});
 
-	//Skapa rum?
-
 	//Anslut spelare till kö
 	socket.on("playerJoinRequest", async (username, callback) => {
 
-		const room = await prisma.room.create({
-			data: {
-				id: //Hur får jag nytt id här?
+		const player = await createPlayer({
+			id: socket.id,
+			username: username,
+			roomId: //?????
+		})
+
+		//Skapa rum efter att player joinar?
+		const room = await createRoom();
+
+		//Joina rum?
+		socket.join(room.id);
+
+		//Sätt roomId till player?
+		const playersInRoom = await getPlayersInRoom(room.id);
+
+		callback({
+			success: true,
+			room: {
+				...room,
+				players: playersInRoom,
 			},
-		});
-
-		//Några if här?
-
-		const player = await prisma.player.create({
-			data: {
-				id: socket.id,
-				roomId: room,
-				username,
-			}
 		});
 	})
 

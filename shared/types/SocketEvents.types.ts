@@ -11,7 +11,7 @@ export interface ClientToServerEvents {
 
     playerJoinRequest: (
         username: string,
-        roomId: string,
+        //roomId: string,
         callback: (response: PlayerJoinRequest) => void
     ) => void;
 }
