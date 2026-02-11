@@ -17,11 +17,11 @@ datasource db {
 model Player {
   id       String @id @map("_id")
   username String
-  roomId   String
+  gameRoomId   String
   score    Int     @default(0)
   reactionTime Int @default(0)
 
-  GameRoom     GameRoom   @relation(fields: [roomId], references: [id])
+  GameRoom     GameRoom   @relation(fields: [gameRoomId], references: [id])
 }
 
 model GameRoom { 
