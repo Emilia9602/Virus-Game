@@ -6,3 +6,157 @@
 
 // Custom styles
 @import "layout";
+@import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+
+.creepster-regular {
+	font-family: "Creepster", system-ui;
+	font-weight: 400;
+	font-style: normal;
+  }
+
+// Centrera allt på sidan
+body {
+    background-color: #0b0e14; // En mörk bakgrundsfärg
+	color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.first-page {
+    width: 100%;
+    margin: 0;
+    padding-bottom: 3rem;
+}
+
+.game-logo {
+    width: 100%;
+    height: 400px;
+	max-height: 40vh;
+	margin-bottom: 20px;
+	object-fit: cover;
+	display: block;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 0 1rem;
+}
+
+// Styling för input-fältet
+.nickname-input {
+	background-color: #0d1117;
+	color: white;
+	caret-color: white;
+    width: 90%;
+    max-width: 400px;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    border: 2px solid #30363d;
+    border-radius: 50px; // Rundade hörn
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    text-align: center;
+
+    &:focus {
+        border-color: #09581d;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+    }
+}
+
+// Styling för knappen
+.start-button {
+    width: 90%;
+    max-width: 400px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    background: linear-gradient(45deg, #28a745, #218838); // Snygg gradient-grön
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px); // Lyfter lite vid hover
+        box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+// Stats-korten
+.stats-wrapper {
+    display: flex;
+    gap: 1.5rem;
+    width: 95%;
+    max-width: 800px;
+    margin-top: 3rem;
+
+    @media (max-width: 600px) {
+        flex-direction: column; // Läggs på höjden i mobilen
+    }
+}
+
+.stats-card {
+    flex: 1;
+    background: rgb(72, 69, 69);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    text-align: center;
+
+    h3 {
+		font-family: "Creepster", system-ui;
+        font-size: 0.9rem;
+        color: #e0d5d5;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-count {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #ede9e9;
+        margin: 0;
+        list-style: none;
+        padding: 0;
+    }
+}
+
+.stats-list {
+	margin-top: 1rem;
+	padding: 0;
+	font-size: 1.1rem;
+	max-height: 200px;
+	overflow-y: auto;
+	text-align: left;
+	list-style: none;
+
+li {
+	font-family:'Segoe UI', sans-serif;
+	margin-bottom: 8px;
+	border-bottom: 1px solid #3e3e3e;
+	padding-bottom: 4px;
+	display: flex;
+	justify-content: flex-start;
+	gap: 5px;
+	}
+}
+
+@media (min-width: 1024px) {
+	.game-logo {
+		max-height: 500px;
+	}
+	.stats-wrapper {
+		flex-direction: row;
+	}
+}
