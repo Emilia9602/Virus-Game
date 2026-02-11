@@ -18,21 +18,31 @@ export const createPlayer = (data: Player) => {
 	create: data,
 	update: {
 		username: data.username,
-		gameoomId: data.roomId
-	}
+		gameRoomId: data.gameRoomId
+	},
 
-	})
+	});
 }
 
 //Get players in the room
 /**
  *
- * @param roomId ID of the room
+ * @param gameRoomId  ID of the room
  * @returns Players in the room
  */
 
-export const getPlayersInRoom = async (roomId: string) => {
+export const getPlayersInRoom = async(gameRoomId : string) => {
 	return await prisma.player.findMany({
-		where: { roomId },
+		where: { gameRoomId: gameRoomId  },
 	});
 }
+
+
+//Get player in the room
+/**
+ *
+ * @param gameRoomId  ID of the room
+ * @returns Player in the room
+ */
+
+//export const getPlayerInRoom = async(gameRoomId : string) => {}

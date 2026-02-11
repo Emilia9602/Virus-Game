@@ -15,30 +15,27 @@ datasource db {
 }
 
 model Player {
-  id       String @id @map("_id")
-  username String
+  id           String @id @map("_id")
+  username     String
   gameRoomId   String
-  score    Int     @default(0)
-  reactionTime Int @default(0)
+  score        Int    @default(0)
+  reactionTime Int    @default(0)
 
-  GameRoom     GameRoom   @relation(fields: [gameRoomId], references: [id])
+  GameRoom GameRoom @relation(fields: [gameRoomId], references: [id])
 }
 
-model GameRoom { 
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  gameOver Boolean  @default(false)
-  gameRound Int @default(0)
+model GameRoom {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  gameOver  Boolean @default(false)
+  gameRound Int     @default(0)
 
   players Player[]
 }
 
 model PostGame {
-id String @id @default(auto()) @map("_id") @db.ObjectId
-player1UserName String
-player1Score Int
-player2UserName String
-player2Score Int
-
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  player1UserName String
+  player1Score    Int
+  player2UserName String
+  player2Score    Int
 }
-
-
