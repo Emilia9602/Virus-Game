@@ -5,3 +5,5 @@ import { prisma } from "../lib/prisma.ts";
 export const createRoom = async () => {
 	return await prisma.room.create({});
 }
+
+
