@@ -9,7 +9,7 @@ export interface Player {
     username: string;
     gameRoomId?: string | null;
     score: number;
-    reactiontime?: number | null;
+    reactionTime?: number | null;
 }
 
 export interface GameRoom {

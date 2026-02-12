@@ -1,23 +1,29 @@
-import type { Player, GameRoom } from "../../backend/generated/prisma/client"
+/**
+ * Socket Event Types
+ */
+import type { Player, GameRoom } from "../../backend/generated/prisma/client.ts"
+
 export {}
 
 // Events emitted by the server to the client
 export interface ServerToClientEvents {
-
+    startGameCountdown: () => void;
 }
 
 // Events emitted by the client to the server
 export interface ClientToServerEvents {
-
     playerJoinRequest: (
         username: string,
-        //roomId: string,
         callback: (response: PlayerJoinRequest) => void
     ) => void;
 }
 
+// RoomWithPlayers extends GameRoom and adds players array and count
 export interface RoomWithPlayers extends GameRoom {
     players: Player[];
+    _count: {
+        players: number;
+    };
 }
 
 export interface PlayerJoinRequest {
