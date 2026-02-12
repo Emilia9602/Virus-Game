@@ -15,13 +15,13 @@ datasource db {
 }
 
 model Player {
-  id           String @id @map("_id")
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
   username     String
-  gameRoomId   String
+  gameRoomId   String? @db.ObjectId
   score        Int    @default(0)
   reactionTime Int    @default(0)
 
-  GameRoom GameRoom @relation(fields: [gameRoomId], references: [id])
+  GameRoom  GameRoom? @relation(fields: [gameRoomId], references: [id])
 }
 
 model GameRoom {

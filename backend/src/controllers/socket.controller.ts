@@ -6,7 +6,8 @@ import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { prisma } from "../lib/prisma.ts";
 import { createPlayer, getPlayersInRoom } from "../services/player.service.ts";
-import { createRoom } from "../services/room.service.ts";
+import { createRoom, getAvailableRoom, addPlayerToRoom } from "../services/room.service.ts";
+import { getAvailableRoom } from "../services/Gameroom.service.ts";
 
 // Create a new debug instance
 const debug = Debug("backend:socket_controller");
@@ -27,45 +28,50 @@ export const handleConnection = (
 
 	//Anslut spelare till kö
 	socket.on("playerJoinRequest", async (username, callback) => {
+		try {
+			const player = await createPlayer({
+				id: socket.id,
+				username: username,
+				gameRoomId: "",
+				score: 0,
+				reactionTime: 0
+			  });
 
-		//If med kontroller på username?
-
-		const player = await createPlayer({
-			id: socket.id,
-			username: username,
-			gameRoomId: "",
-			score: 0,
-			reactionTime: 0
-		});
-
-		//GameRoom, om det finns ledigt, hoppa in där, annars skapa nytt
-		const rooms = await getGameRooms(); //Tex
-
-		if (rooms.players === ) //Om där är 1 spelare som väntar, hur skriva?
-		{ addPlayerToGameRoom();} //Lägg till spelare i rum, gå vidare till spel
-		else {
-			//Skapa nytt rum att köa/spela i
-		await createRoom();
-		await addPlayerToGameRoom(); //Så att spelaren läggs till i rummet?
+			//Hitta ett rum
+		let room = await getAvailableRoom(); //Hitta ett rum som väntar på en motståndare
+		if (!room) {
+			room = await createRoom(); //Om inget ledigt rum, skapa ett nytt
 		}
 
-		//Lägg in vilket rum spelaren joina
-		const gameRoomId = player.gameRoomId;
+		//Lägg till spelaren i rummet
+		await addPlayerToGameRoom(player.id, room.id);
 
-		//Joina rum?
-		socket.join(gameRoomId);
+		//Joina socket.io rummet
+		socket.join(room.id);
 
-		//Sätt roomId till player?
+		//Hämta alla spelare i rummet
 		const playersInRoom = await getPlayersInRoom(room.id);
 
-		callback({
+		//Skicka svar till klienten
+		callback ({
 			success: true,
 			room: {
-				...room,
+				id: room.id,
 				players: playersInRoom,
 			},
 		});
-	})
+
+		//Om rummet är fullt (2 spelare), starta spelet
+		if (playersInRoom.length === 2) {
+			_io.to(room.id).emit("startGameCountdown");
+		}
+	} catch (error) {
+		debug("Fel vid playerJoinRequest: %o", error);
+		callback({ success: false });
+		}
+	});
+
+
 
 	//2 spelare, countdown till att spelet startar
 
