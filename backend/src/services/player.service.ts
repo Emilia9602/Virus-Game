@@ -1,4 +1,4 @@
-import { Player } from "@shared/types/Models.types.ts";
+import { Player } from "../../generated/prisma/client.ts";
 import { prisma } from "../lib/prisma.ts";
 
 //Create player
@@ -8,19 +8,11 @@ import { prisma } from "../lib/prisma.ts";
  * @returns {Player} Player
  */
 
-export const createPlayer = (data: Player) => {
-	return prisma.player.upsert({
-		where: {
-			id: data.id,
-		},
-
-		create: data,
-		update: {
-			username: data.username,
-			gameRoomId: data.gameRoomId,
-		},
+export const createPlayer = async (data: Player) => {
+	return await prisma.player.create({
+		data,
 	});
-};
+}
 
 //Get all players in the room
 /**
