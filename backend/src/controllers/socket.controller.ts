@@ -1,92 +1,82 @@
 /**
  * Socket Controller
  */
-import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketEvents.types.ts";
+// backend/src/controllers/socket.controller.ts
+import type { ClientToServerEvents, ServerToClientEvents, PlayerJoinRequest } from "@shared/types/SocketEvents.types.ts";
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
-import { prisma } from "../lib/prisma.ts";
 import { createPlayer, getPlayersInRoom } from "../services/player.service.ts";
-import { createRoom } from "../services/room.service.ts";
+import { createRoom, getAvailableRoom, addPlayerToRoom } from "../services/Gameroom.service.ts";
 
-// Create a new debug instance
 const debug = Debug("backend:socket_controller");
 debug("Socket Controller initialized");
 
-// Handle new socket connection
 export const handleConnection = (
-	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-	_io: Server<ClientToServerEvents, ServerToClientEvents>
+    socket: Socket<ClientToServerEvents, ServerToClientEvents>,
+    _io: Server<ClientToServerEvents, ServerToClientEvents>
 ) => {
-	// Yay someone connected to me
-	debug("🙋 A user connected with id: %s", socket.id);
+    debug("🙋 A user connected with id: %s", socket.id);
 
-	// Handle user disconnecting
-	socket.on("disconnect", () => {
-		debug("👋 A user disconnected with id: %s", socket.id);
-	});
+    // Hantera disconnect
+    socket.on("disconnect", () => {
+        debug("👋 A user disconnected with id: %s", socket.id);
+    });
 
-	//Anslut spelare till kö
-	socket.on("playerJoinRequest", async (username, callback) => {
+    // Spelare ansluter till kö
+    socket.on("playerJoinRequest", async (username, callback) => {
+        try {
+            // Skapa spelare
+            const player = await createPlayer({
+                id: socket.id,
+                username,
+                gameRoomId: "",
+                score: 0,
+                reactionTime: 0, // Prisma-genererat fält
+            });
 
-		//If med kontroller på username?
+            // Hitta ledigt rum eller skapa nytt
+            const room = await getAvailableRoom() ?? await createRoom();
 
-		const player = await createPlayer({
-			id: socket.id,
-			username: username,
-			gameRoomId: "",
-			score: 0,
-			reactionTime: 0
-		});
+            // Koppla spelare till rummet
+            await addPlayerToRoom(player.id, room.id);
 
-		//GameRoom, om det finns ledigt, hoppa in där, annars skapa nytt
-		const rooms = await getGameRooms(); //Tex
+            // Joina socket.io rummet
+            socket.join(room.id);
 
-		if (rooms.players === ) //Om där är 1 spelare som väntar, hur skriva?
-		{ addPlayerToGameRoom();} //Lägg till spelare i rum, gå vidare till spel
-		else {
-			//Skapa nytt rum att köa/spela i
-		await createRoom();
-		await addPlayerToGameRoom(); //Så att spelaren läggs till i rummet?
-		}
+            // Hämta alla spelare i rummet
+            const playersInRoom = await getPlayersInRoom(room.id);
 
-		//Lägg in vilket rum spelaren joina
-		const gameRoomId = player.gameRoomId;
+            // Skapa korrekt PlayerJoinRequest med _count
+            const response: PlayerJoinRequest = {
+                success: true,
+                gameRoom: {
+                    id: room.id,
+                    gameOver: room.gameOver,
+                    gameRound: room.gameRound,
+                    players: playersInRoom,
+                    _count: {
+                        players: playersInRoom.length,
+                    },
+                },
+            };
 
-		//Joina rum?
-		socket.join(gameRoomId);
+            // Skicka svar till klienten
+            callback(response);
 
-		//Sätt roomId till player?
-		const playersInRoom = await getPlayersInRoom(gameRoomId);
+            // Om rummet är fullt (2 spelare), starta spelet
+            if (playersInRoom.length === 2) {
+                _io.to(room.id).emit("startGameCountdown");
+            }
+        } catch (error) {
+            debug("Fel vid playerJoinRequest: %o", error);
+            callback({ success: false, gameRoom: null });
+        }
+    });
 
-		callback({
-			success: true,
-			gameRoom: {
-				id: gameRoomId,
-				gameOver: false,
-				gameRound: 0,
-				players: playersInRoom,
-			},
-		});
-	})
-
-	//2 spelare, countdown till att spelet startar
-
-	//Servern slumpar position för virus
-
-	//Servern slumpar tiden till att virus visas för spelare
-
-	//Servern skickar samtidigt till båda klienter så de får
-	//upp viruset samtidigt
-
-	//Servern väntar på klick från båda spelarna
-
-	//När en spelare tryckt skickar klienten tiden och räknar ut reaktionstiden
-
-	//När båda tryckt, jämför reaktion och snabbast får poäng
-
-	//Servern skickar uppdaterad poängställning
-
-	//Nästa runda fram till 10
-
-	//10 rundor - Slutspelat, vem vann?
-}
+    // Här kan du lägga till:
+    // - Countdown till spelet startar
+    // - Slumpa virus-position och tid
+    // - Hantera spelrundor, reaktionstid och poäng
+    // - Skicka uppdaterad poängställning
+    // - Hantera slutspel efter 10 rundor
+};
