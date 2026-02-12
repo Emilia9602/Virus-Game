@@ -33,6 +33,6 @@ return await prisma.postGame.findMany({
     id: "desc",
   },
 
-});
+})
 
 };
