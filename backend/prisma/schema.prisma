@@ -19,15 +19,15 @@ model Player {
   username     String
   gameRoomId   String? @db.ObjectId
   score        Int    @default(0)
-  reactionTime Int    @default(0)
+  reactionTime Int?   
 
-  GameRoom  GameRoom? @relation(fields: [gameRoomId], references: [id])
+  GameRoom GameRoom? @relation(fields: [gameRoomId], references: [id])
 }
 
 model GameRoom {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  gameOver  Boolean @default(false)
-  gameRound Int     @default(0)
+  gameOver  Boolean? @default(false)
+  gameRound Int?     @default(0)
 
   players Player[]
 }
