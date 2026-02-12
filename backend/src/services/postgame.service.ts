@@ -67,3 +67,4 @@ export const updateTenLatestPostGames = (data: ) => { //Array of GameRoom[]
 /*export const getWinner = () => {
 
 }*/
+      
