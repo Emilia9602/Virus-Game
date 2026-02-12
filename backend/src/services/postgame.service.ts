@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.ts";
-import { PostGame } from "@shared/types/Models.types.ts";
+import { Player, PostGame } from "@shared/types/Models.types.ts";
 
 //Create PostGame
 /**
@@ -8,22 +8,12 @@ import { PostGame } from "@shared/types/Models.types.ts";
  * @returns {PostGame} PostGame
  */
 
-export const createPostGame = (data: PostGame) => {
-	return prisma.postGame.upsert({
-		where: {
-			id: data.id
-		},
-
-	create: data,
-	update: {
-		player1UserName: data.player1UserName,
-		player1Score: data.player1Score,
-		player2UserName: data.player2UserName,
-		player2Score: data.player2Score,
-	},
-
-	});
+//Fick inte riktigt rätt på detta än
+/*
+export const createPostGame = (finishPlayers: Player[]) => {
+	return prisma.postGame.create();
 }
+	*/
 
 //Get postGames by player
 /**

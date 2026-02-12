@@ -28,17 +28,32 @@ export const handleConnection = (
 	//Anslut spelare till kö
 	socket.on("playerJoinRequest", async (username, callback) => {
 
+		//If med kontroller på username?
+
 		const player = await createPlayer({
 			id: socket.id,
 			username: username,
-			roomId: //?????
-		})
+			gameRoomId: "",
+			score: 0,
+			reactionTime: 0
+		});
 
-		//Skapa rum efter att player joinar?
-		const room = await createRoom();
+		//GameRoom, om det finns ledigt, hoppa in där, annars skapa nytt
+		const rooms = await getGameRooms(); //Tex
+
+		if (rooms.players === ) //Om där är 1 spelare som väntar, hur skriva?
+		{ addPlayerToGameRoom();} //Lägg till spelare i rum, gå vidare till spel
+		else {
+			//Skapa nytt rum att köa/spela i
+		await createRoom();
+		await addPlayerToGameRoom(); //Så att spelaren läggs till i rummet?
+		}
+
+		//Lägg in vilket rum spelaren joina
+		const gameRoomId = player.gameRoomId;
 
 		//Joina rum?
-		socket.join(room.id);
+		socket.join(gameRoomId);
 
 		//Sätt roomId till player?
 		const playersInRoom = await getPlayersInRoom(room.id);
@@ -51,8 +66,6 @@ export const handleConnection = (
 			},
 		});
 	})
-
-	//Vänta på 2 spelare
 
 	//2 spelare, countdown till att spelet startar
 
