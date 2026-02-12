@@ -1,4 +1,4 @@
-import type { Player, Room } from "../../backend/generated/prisma/client"
+import type { Player, GameRoom } from "../../backend/generated/prisma/client"
 export {}
 
 // Events emitted by the server to the client
@@ -16,11 +16,11 @@ export interface ClientToServerEvents {
     ) => void;
 }
 
-export interface RoomWithPlayers extends Room {
+export interface RoomWithPlayers extends GameRoom {
     players: Player[];
 }
 
 export interface PlayerJoinRequest {
     success: boolean;
-    room: RoomWithPlayers | null;
+    gameRoom: RoomWithPlayers | null;
 }

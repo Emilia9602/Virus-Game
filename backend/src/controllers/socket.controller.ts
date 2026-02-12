@@ -56,12 +56,14 @@ export const handleConnection = (
 		socket.join(gameRoomId);
 
 		//Sätt roomId till player?
-		const playersInRoom = await getPlayersInRoom(room.id);
+		const playersInRoom = await getPlayersInRoom(gameRoomId);
 
 		callback({
 			success: true,
-			room: {
-				...room,
+			gameRoom: {
+				id: gameRoomId,
+				gameOver: false,
+				gameRound: 0,
 				players: playersInRoom,
 			},
 		});
