@@ -11,20 +11,28 @@ export function createWaitingRoom(
 	wrapper.className = "waiting-wrapper";
 
 	//Title
-	const title = document.createElement("h2");
-	title.textContent = "Waiting Room";
-	wrapper.appendChild(title);
+	const waitingText = document.createElement("h2");
+	waitingText.className = "waiting-text";
+	waitingText.textContent = "Waiting for other player";
+
+	//Span for dots
+	const dotsSpan = document.createElement("span");
+	dotsSpan.className = "dots";
+	waitingText.appendChild(dotsSpan);
+
+	wrapper.appendChild(waitingText);
+
+	//JS-animation for dots
+	let dots = 0;
+	setInterval(() => {
+		dots = (dots + 1) % 4; //Loops 0,1,2,3
+		dotsSpan.textContent = ".".repeat(dots);
+	}, 500);
 
 	//Show nickname
 	const playerName = document.createElement("p");
 	playerName.textContent = `Your nickname:  ${nickname}`;
 	wrapper.appendChild(playerName);
-
-	//Placeholder for player list
-	const playersList = document.createElement("ul");
-	playersList.id = "players-list";
-	playersList.textContent = "Waiting for other players...";
-	wrapper.appendChild(playersList);
 
 	//Exit button
 	const exitButton = document.createElement("button");
