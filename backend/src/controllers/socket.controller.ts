@@ -7,6 +7,7 @@ import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { createPlayer, getPlayerInRoom, getPlayersInRoom, resetPlayerTimer, updatePlayerScores, updatePlayerTimer } from "../services/player.service.ts";
 import { createRoom, getAvailableRoom, addPlayerToRoom, getGameRoom, updateGameRoomRounds } from "../services/gameRoom.service.ts";
+import { createPostGame } from "../services/postgame.service.ts";
 
 const debug = Debug("backend:socket_controller");
 debug("Socket Controller initialized");
@@ -85,7 +86,7 @@ export const handleConnection = (
 
 		//Kolla om spelaren finns
 		if (!player) {
-			//Nåt felmeddelande?
+			debug("Spelaren finns inte");
 			return;
 		}
 
@@ -94,7 +95,7 @@ export const handleConnection = (
 
 		//Kolla om spelaren har ett gameRoomId
 		if (!playerRoomId) {
-			//Felmeddelande?
+			debug("Spelrumid finns inte");
 			return;
 		}
 
@@ -103,24 +104,29 @@ export const handleConnection = (
 
 		//Kolla om gameRoom finns
 		if (!gameRoom) {
-			//Felmeddelande?
+			debug("Spelrum finns inte");
 			return;
 		}
 
-		//Uppdatera spelarens poäng
-		//Om spelaren är snabbast =>
-		await updatePlayerScores(player.id);
-		//Annars inte =>
+		//Hämta båda spelarna i gameRoom
+		const players = await getPlayersInRoom(gameRoom.id);
+		const player2 = players[1]; //Får jag tag i andra spelaren såhär?
 
 		//Hur får jag tag i spelarens reactionTime?
-		//Kolla om spelaren har en reactionTime
-		if (!player.reactionTime) {
-			//Felmeddelande?
+		//Kolla om spelarna har en reactionTime
+		if (!player.reactionTime || !player2.reactionTime) {
+			debug("En eller båda av spelarna har ingen reaktionstid");
 			return;
 		}
 
 		//Uppdatera spelarens reactionTime
 		await updatePlayerTimer(player.id, player.reactionTime);
+
+		//Uppdatera spelarens poäng
+		if (player.reactionTime > player2.reactionTime) {
+			//Om spelaren är snabbast =>
+		await updatePlayerScores(player.id);
+		}
 
 		//Uppdatera rundorna i gameRoom
 		await updateGameRoomRounds(playerRoomId);
@@ -136,8 +142,49 @@ export const handleConnection = (
 
 		//Återställ timern för reactionTime
 		await resetPlayerTimer(player.id);
+
+		//Börja om, hur gör man det?
 	});
 
     // - Skicka uppdaterad poängställning
+
     // - Hantera slutspel efter 10 rundor
+	socket.on("updateResult", async () => {
+
+		const player = await getPlayerInRoom(socket.id);
+
+		//Kolla om spelaren finns
+		if (!player) {
+			debug("Spelaren finns inte");
+			return;
+		}
+
+		//Hämta spelarens gameRoomId
+		const playerRoomId = player.gameRoomId;
+
+		//Kolla om spelaren har ett gameRoomId
+		if (!playerRoomId) {
+			debug("Spelrumid finns inte");
+			return;
+		}
+
+		//Hämta gameRoom för spelaren
+		const gameRoom = await getGameRoom(playerRoomId);
+
+		//Kolla om gameRoom finns
+		if (!gameRoom) {
+			debug("Spelrum finns inte");
+			return;
+		}
+
+		//Hämta båda spelarna i gameRoom
+		const players = await getPlayersInRoom(gameRoom.id);
+
+		//Om det gått 10 rundor, skicka resultatet
+		if(gameRoom.gameOver === true) {
+			const result = await createPostGame(players);
+
+			_io.to(playerRoomId).emit("showResult", result);
+		}
+	})
 };
