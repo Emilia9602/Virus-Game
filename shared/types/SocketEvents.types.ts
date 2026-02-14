@@ -10,6 +10,7 @@ export interface ServerToClientEvents {
     startGameCountdown: () => void;
     showUpdatedGameStatus: (data: UpdateGameStatus) => void;
     showResult: (data: GameResult) => void;
+    playerRageQuit: (username: string) => void;
 }
 
 // Events emitted by the client to the server
@@ -27,6 +28,11 @@ export interface ClientToServerEvents {
     updateResult: (
         data: GameResult,
         callback: (response: GameResult) => void
+    ) => void;
+
+    countDown: (
+        data: CountDown,
+        callback: (threeTwoOne: CountDown) => void
     ) => void;
 }
 
@@ -54,4 +60,8 @@ export interface GameResult {
     player1Score: number,
     player2UserName: string,
     player2Score: number,
+}
+
+export interface CountDown {
+    threeTwoOne: number[],
 }

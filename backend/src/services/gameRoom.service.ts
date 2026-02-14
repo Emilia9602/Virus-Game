@@ -56,6 +56,7 @@ export const addPlayerToRoom = async (playerId: string, roomId: string): Promise
 	});
 };
 
+//Uppdatera spelrundans poäng
 export const updateGameRoomRounds = async (playerRoomId: string) => {
 	return await prisma.gameRoom.update({
 		where: { id: playerRoomId },
