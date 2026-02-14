@@ -24,7 +24,7 @@ function showFirstPage() {
 
 function showWaitingRoom(nickname: string) {
 	app.innerHTML = "";
-	const waitingRoom = createWaitingRoom(nickname);
+	const waitingRoom = createWaitingRoom(nickname, showFirstPage);
 	app.appendChild(waitingRoom);
 }
 showFirstPage();
