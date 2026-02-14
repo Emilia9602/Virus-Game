@@ -2,38 +2,34 @@ import type { ClientToServerEvents, ServerToClientEvents } from "@shared/types/S
 import { io, Socket } from "socket.io-client";
 import "./assets/scss/style.scss";
 import { createFirstPage } from "./firstPage";
+import { createWaitingRoom } from "./waitingRoom";
+
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 console.log("🙇 Connecting to Socket.IO Server at:", SOCKET_HOST);
-
 
 // Connect to Socket.IO Server
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_HOST);
 
-/**
- * DOM References
- */
+//DOM References
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
-/**
- * Variables
- */
-
-/**
- * Functions
- */
-const handleStartGame =(nickname: string) => {
-	console.log("Player joined with nickname:", nickname);
-};
-
-const renderLobby = () => {
+//Functions
+function showFirstPage() {
 	app.innerHTML = "";
+	const firstPage = createFirstPage((nickname) => {
+		showWaitingRoom(nickname);
+	});
+	app.appendChild(firstPage);
+}
 
-	app.appendChild(createFirstPage(handleStartGame));
-
-};
+function showWaitingRoom(nickname: string) {
+	app.innerHTML = "";
+	const waitingRoom = createWaitingRoom(nickname);
+	app.appendChild(waitingRoom);
+}
+showFirstPage();
 
 //Listen for when a connection is established
-renderLobby();
 socket.on("connect", () => {
 	console.log("💥Connected to server", socket.io.opts.hostname + ":" + socket.io.opts.port);
 	console.log("Socket ID:", socket.id);
@@ -51,3 +47,5 @@ socket.io.on("reconnect", () => {
 /**
  * DOM Event Listeners
  */
+
+
