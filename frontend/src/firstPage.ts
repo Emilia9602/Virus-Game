@@ -22,7 +22,7 @@ export function createFirstPage(onStart: (nickname: string) => void): HTMLElemen
 	input.id ="nickname";
 	input.name = "nickname";
 
-	//Start game button
+	//Start game knapp
 	const button = document.createElement("button")
 	button.textContent = "Start Game"
 	button.className ="start-button"

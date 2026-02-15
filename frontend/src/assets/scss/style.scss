@@ -102,13 +102,14 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+//First page styling
 .first-page {
     width: 100%;
     margin: 0;
     padding-bottom: 3rem;
 }
 
-//Bilden på firstpage
+//First page bild
 .game-logo {
     width: 100%;
     height: 400px;
@@ -141,6 +142,7 @@ body {
 	justify-content: center;
 	margin-bottom: 2rem;
 }
+
 //Instruktions knapp
 .instructions-button {
 	width: 130px;
@@ -276,8 +278,10 @@ li {
 .waiting-room {
 	position: relative;
 	display: flex;
-	flex: column;
-	align-items: center;
+	flex-direction: column;
+	align-items: flex-start;
+	padding-left: 3rem;
+	padding-top: 30vh;
 	min-height: 100vh;
 	width: 100%;
 	background-image: url('/viruskontroll.png');
@@ -304,13 +308,16 @@ li {
 	z-index: 2;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	// align-items: center;
+	// text-align: center;
 	gap: 1.5rem;
+	padding: 0 2rem;
 }
 
+//Rubriken i waiting room
 .waiting-text {
 	font-family: "Creepster", system-ui;
-	font-size: 2rem;
+	font-size: 3rem;
 	font-weight: bold;
 	color: #e0d5d5;
 }
@@ -326,8 +333,13 @@ li {
 	color: #c0c0c0;
 }
 
+//Exit knapp i waiting room
 .exit-button {
+	z-index: 3;
+	position: relative;
 	padding: 1rem 2rem;
+	margin-top: auto;
+	align-self: flex-end;
 	font-size: 1rem;
 	font-weight: bold;
 	border-radius: 50px;
@@ -359,5 +371,7 @@ li {
 		flex-direction: row;
 		}
 	}
+
+
 
 
