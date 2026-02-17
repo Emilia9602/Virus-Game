@@ -19,12 +19,13 @@ import {
 } from "../services/player.service.ts";
 import {
 	createRoom,
-	//getGameRoom,
 	//updateGameRoomRounds,
-	getGameRooms,
+	// getGameRooms,
+	addPlayerToRoom,
+	getAvailableRoom,
 } from "../services/gameRoom.service.ts";
 //import { createPostGame } from "../services/postgame.service.ts";
-import { GameRoom } from "@shared/types/Models.types.ts";
+// import { GameRoom } from "@shared/types/Models.types.ts";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
 
 const debug = Debug("backend:socket_controller");
@@ -65,15 +66,23 @@ export const handleConnection = (
 
 	// Spelare ansluter till kö
 	socket.on("playerJoinRequest", async (username, callback) => {
-		// 1. Hitta ledigt rum eller skapa nytt
-		const rooms: GameRoom[] = await getGameRooms();
+		try {
+			debug("playerJoinRequest mottagen från: %s", socket.id);
 
-		// 2. Hitta spelrum med en Player
-		let gameRoom = rooms.find((room) => room.players?.length === 1);
+			let gameRoom = await getAvailableRoom();
+			debug("Hittade rum: %s", gameRoom?.id ?? "inget rum hittades");
+
+			// resten av koden...
 
 		// 3.Om ej ledigt rum finns - skapa ett nytt
 		if (!gameRoom) {
 			gameRoom = await createRoom();
+		}
+
+		if (!gameRoom) {
+			debug("Kunde inte skapa eller hitta rum");
+			callback({ success: false, gameRoomId: ""});
+			return;
 		}
 
 		// 4. Joina (socket.io) game-rummet
@@ -81,7 +90,7 @@ export const handleConnection = (
 
 		// 5. Skapa spelare/användare
 		await createPlayer({
-			id: socket.id,
+			socketId: socket.id,
 			username,
 			gameRoomId: gameRoom.id,
 			score: 0,
@@ -99,17 +108,45 @@ export const handleConnection = (
 
 		// 8. Om rummet är fullt (2 spelare), starta spelet annars vänta
 		if (playersInRoom.length === 2) {
-			io.to(gameRoom.id).emit("startGameCountdown"); // skicka t frontend
-			io.to(gameRoom.id).emit("playersInRoom", playersInRoom);
+			io.to(gameRoom.id).emit("startGameCountDown"); // skicka t frontend
 
-			// get virus position and time
+			let count = 3;
+			const countdownInterval = setInterval(async () => {
+				io.to(gameRoom.id).emit("countDown", count);
+			count--;
 
-			const { virus, setTimeOutTimer } = getVirusPositionAndTime();
-			io.to(gameRoom.id).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+			if (count < 0) {
+				clearInterval(countdownInterval);
+
+				//Skapa nytt spelrum
+				const newGameRoom = await createRoom();
+
+
+				//Flytta båda spelarna till det nya rummet
+				for (const p of playersInRoom) {
+					await addPlayerToRoom(p.id, newGameRoom.id);
+					io.sockets.to(p.socketId).socketsJoin(newGameRoom.id);
+				}
+
+				//Lämna waiting room
+				io.socketsLeave(gameRoom.id);
+
+				//Skicka virusposition till nya rummet
+				const { virus, setTimeOutTimer } = getVirusPositionAndTime();
+				io.to(newGameRoom.id).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+				}
+			}, 1000);
 		} else {
 			io.to(gameRoom.id).emit("waiting");
+			}
+		} catch (err) {
+			debug("Error in playerJoinRequest:", err);
+			console.error("Error:", err);
 		}
-	});
+		});
+
+
+
 
 
 /*

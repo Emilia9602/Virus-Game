@@ -9,6 +9,10 @@ export const createRoom = async () => {
 			gameOver: false, // Spelet är inte över när rummet skapas
 			gameRound: 0,    // Börja på runda 0
 		},
+		include: {
+			players: true,
+			_count: { select: { players: true} },
+		},
 	});
 };
 
@@ -44,7 +48,7 @@ export const getAvailableRoom = async () => {
 	});
 
 	//Hitta första rummet som har exakt 1 spelare
-	const availableRoom = rooms.find(room => room._count.players === 1);
+	const availableRoom = rooms.find(room => room._count.players < 2);
 	return availableRoom ?? null;
 	};
 

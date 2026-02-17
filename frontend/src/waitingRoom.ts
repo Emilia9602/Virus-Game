@@ -1,21 +1,21 @@
 import { createFirstPage } from "./firstPage";
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 import { createGamePage } from "./gamePage";
-
-const socket = io("http://localhost:3000");
-
-socket.on("connect", () => {
-	console.log("Connected to backend! Socket ID:", socket.id);
-})
-
+import type { Socket } from "socket.io-client";
+import type { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketEvents.types.ts";
 
 export function createWaitingRoom(
 	nickname: string,
+	socket: Socket<ServerToClientEvents, ClientToServerEvents>,
 	goToFirstPage: () => void,
 	goToGamePage: () => void
 ): HTMLElement {
 	const container = document.createElement("section");
 	container.className = "waiting-room";
+
+	socket.emit("playerJoinRequest", nickname, (response: { success: boolean; gameRoomId: string}) => {
+		console.log("Join response:", response);
+	});
 
 	const wrapper = document.createElement("div");
 	wrapper.className = "waiting-wrapper";

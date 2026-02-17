@@ -16,12 +16,12 @@ const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_HOS
 socket.on("countDown", (num) => {
 	console.log("Countdown:", num);
 });
-socket.on("gameStart", () => {
-	console.log("Spelet startar nu!");
-	app.innerHTML = "";
-	const gamePage = createGamePage(currentNickname);
-	app.appendChild(gamePage);
-});
+// socket.on("startGameCountDown", () => {
+// 	console.log("Spelet startar nu!");
+// 	app.innerHTML = "";
+// 	const gamePage = createGamePage(currentNickname);
+// 	app.appendChild(gamePage);
+// });
 
 //DOM References
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -40,8 +40,13 @@ function showWaitingRoom(nickname: string) {
 	app.innerHTML = "";
 	const waitingRoom = createWaitingRoom(
 		nickname,
+		socket,
 		() => showFirstPage(),
-		() => createGamePage(nickname)
+		() => {
+			app.innerHTML = "";
+			const gamePage = createGamePage(nickname);
+			app.appendChild(gamePage);
+		}
 	);
 	app.appendChild(waitingRoom);
 }
