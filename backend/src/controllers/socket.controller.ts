@@ -13,16 +13,16 @@ import {
 	deletePlayerInRoom,
 	getPlayerInRoom,
 	getPlayersInRoom,
-	//resetPlayerTimer,
-	//updatePlayerScores,
-	//updatePlayerTimer,
+	resetPlayerTimer,
+	updatePlayerScores,
+	updatePlayerTimer,
 } from "../services/player.service.ts";
 import {
 	createRoom,
-	//updateGameRoomRounds,
 	// getGameRooms,
 	addPlayerToRoom,
 	getAvailableRoom,
+	updateGameRoomRounds,
 } from "../services/gameRoom.service.ts";
 //import { createPostGame } from "../services/postgame.service.ts";
 // import { GameRoom } from "@shared/types/Models.types.ts";
@@ -47,80 +47,127 @@ export const handleConnection = (
 
 			// resten av koden...
 
-		// 3.Om ej ledigt rum finns - skapa ett nytt
-		if (!gameRoom) {
-			gameRoom = await createRoom();
-			console.log(`🆕 Skapade nytt rum med id: ${gameRoom.id}`);
-		} else {
-			console.log(`🟢 Hittade ledigt rum med id: ${gameRoom.id}`);
-		}
+			// 3.Om ej ledigt rum finns - skapa ett nytt
+			if (!gameRoom) {
+				gameRoom = await createRoom();
+				console.log(`🆕 Skapade nytt rum med id: ${gameRoom.id}`);
+			} else {
+				console.log(`🟢 Hittade ledigt rum med id: ${gameRoom.id}`);
+			}
 
-		if (!gameRoom) {
-			debug("Kunde inte skapa eller hitta rum");
-			callback({ success: false, gameRoomId: ""});
-			return;
-		}
+			if (!gameRoom) {
+				debug("Kunde inte skapa eller hitta rum");
+				callback({ success: false, gameRoomId: "" });
+				return;
+			}
 
-		// 4. Joina (socket.io) game-rummet
-		socket.join(gameRoom.id);
-		console.log(`🎮 Spelare "${username}" anslöt till rum: ${gameRoom.id}`);
+			// 4. Joina (socket.io) game-rummet
+			socket.join(gameRoom.id);
+			console.log(`🎮 Spelare "${username}" anslöt till rum: ${gameRoom.id}`);
 
-		// 5. Skapa spelare/användare
-		await createPlayer({
-			socketId: socket.id,
-			username,
-			gameRoomId: gameRoom.id,
-			score: 0,
-			reactionTime: 0, // Prisma-genererat fält
-		});
+			// 5. Skapa spelare/användare
+			await createPlayer({
+				socketId: socket.id,
+				username,
+				gameRoomId: gameRoom.id,
+				score: 0,
+				reactionTime: 0, // Prisma-genererat fält
+			});
 
-		// 6. Skicka svar till klienten
-		callback({
-			success: true,
-			gameRoomId: gameRoom.id,
-		});
+			// 6. Skicka svar till klienten
+			callback({
+				success: true,
+				gameRoomId: gameRoom.id,
+			});
 
-		// 7. Hämta alla spelare i rummet
-		const playersInRoom = await getPlayersInRoom(gameRoom.id);
+			// 7. Hämta alla spelare i rummet
+			const playersInRoom = await getPlayersInRoom(gameRoom.id);
 
-		// 8. Om rummet är fullt (2 spelare), starta spelet annars vänta
-		if (playersInRoom.length === 2) {
-			io.to(gameRoom.id).emit("startGameCountDown"); // skicka t frontend
+			// 8. Om rummet är fullt (2 spelare), starta spelet annars vänta
+			if (playersInRoom.length === 2) {
+				io.to(gameRoom.id).emit("startGameCountDown"); // skicka t frontend
 
-			let count = 3;
-			const countdownInterval = setInterval(async () => {
-				io.to(gameRoom.id).emit("countDown", count);
-			count--;
+				let count = 3;
+				const countdownInterval = setInterval(async () => {
+					io.to(gameRoom.id).emit("countDown", count);
+					count--;
 
-			if (count < 0) {
-				clearInterval(countdownInterval);
+					if (count < 0) {
+						clearInterval(countdownInterval);
 
-				//Skapa nytt spelrum
-				const newGameRoom = await createRoom();
+						//Skapa nytt spelrum
+						const newGameRoom = await createRoom();
 
 
-				//Flytta båda spelarna till det nya rummet
-				for (const p of playersInRoom) {
-					await addPlayerToRoom(p.id, newGameRoom.id);
-					io.sockets.to(p.socketId).socketsJoin(newGameRoom.id);
-				}
+						//Flytta båda spelarna till det nya rummet
+						for (const p of playersInRoom) {
+							await addPlayerToRoom(p.id, newGameRoom.id);
+							io.sockets.to(p.socketId).socketsJoin(newGameRoom.id);
+						}
 
-				//Lämna waiting room
-				io.socketsLeave(gameRoom.id);
+						//Lämna waiting room
+						io.socketsLeave(gameRoom.id);
 
-				//Skicka virusposition till nya rummet
-				const { virus, setTimeOutTimer } = getVirusPositionAndTime();
-				io.to(newGameRoom.id).emit("virusPositionsAndTime", virus, setTimeOutTimer);
-				}
-			}, 1000);
-		} else {
-			io.to(gameRoom.id).emit("waiting");
+						//Emilias nya kod < - - - - -
+
+						//Få tag i spelarna i vars en variabel
+						const player1 = playersInRoom[0]; //Första spelaren
+						const player2 = playersInRoom[1]; //Andra spelaren   Rätt sätt?
+
+						//Kolla om spelarna har en reactionTime
+						if (!player1.reactionTime || !player2.reactionTime) {
+							debug("En eller båda av spelarna har ingen reaktionstid");
+							return;
+						}
+
+						//Uppdatera spelarnas reactionTime
+						await updatePlayerTimer(player1.id, player1.reactionTime);
+						await updatePlayerTimer(player2.id, player2.reactionTime);
+
+						//Uppdatera spelarnas poäng
+						if (player1.reactionTime > player2.reactionTime) {
+							//Om spelaren är snabbast =>
+							await updatePlayerScores(player1.id);
+						} else {
+							await updatePlayerScores(player2.id);
+						}
+
+						//Uppdatera rundorna i gameRoom
+						await updateGameRoomRounds(gameRoom.id);
+
+						//Om det är spelrunda 10 -> gameOver
+						if (gameRoom.gameRound === 10) {
+							//Avsluta spelet
+							gameRoom.gameOver = true;
+						}
+
+						//const gameStatus =      //Gameround, reactionTime, score
+
+						//Skicka uppdaterad poängställnng och game status
+						//io.to(gameRoom.id).emit("showUpdatedGameStatus", gameStatus);
+
+						//Återställ timern för reactionTime
+						await resetPlayerTimer(player1.id);
+						await resetPlayerTimer(player2.id);
+
+						//Slut på Emilias kod just nu < - - - - -
+
+
+
+
+						//Skicka virusposition till nya rummet
+						const { virus, setTimeOutTimer } = getVirusPositionAndTime();
+						io.to(newGameRoom.id).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+					}
+				}, 1000);
+			} else {
+				io.to(gameRoom.id).emit("waiting");
 			}
 		} catch (err) {
 			debug("Error in playerJoinRequest:", err);
 			console.error("Error:", err);
 		}
-		});
+	});
 
 
 
@@ -150,131 +197,10 @@ export const handleConnection = (
 	/*
 	// Här kan du lägga till:
 
-	//Hämta spelarens gameRoomId
-		const playerRoomId = player.gameRoomId;
-
-		//Kolla om spelaren har ett gameRoomId
-		if (!playerRoomId) {
-			debug("Spelrumid finns inte");
-			return;
-		}
-
-	// - Countdown till spelet startar
-	socket.on("countDown", async (callback) => {
-		const player = await getPlayerInRoom(socket.id);
-		//Kolla om spelaren finns
-		if (!player) {
-			debug("Spelaren finns inte");
-			return;
-		}
-
-
-
-		const three = 3;
-		const two = 2;
-		const one = 1;
-
-		// Hämta alla spelare i rummet
-		const playersInRoom = await getPlayersInRoom(playerRoomId);
-
-		//Tänkte kolla här om det finns 2 spelare, starta countdown..
-		setTimeout(() => {
-			callback(three);
-		}, 1000);
-
-		//Är jag helt ute och cyklar? Ska detta vara i main.ts istället?
-	});
-
-	// - Slumpa virus-position och tid
-
 	// - Hantera spelrundor, reaktionstid och poäng
-	socket.on("updateGameStatus", async (data) => {
-		//Hämta spelaren
-		const player = await getPlayerInRoom(socket.id);
-		//Kolla om spelaren finns
-		if (!player) {
-			debug("Spelaren finns inte");
-			return;
-		}
-
-		//Hämta spelarens gameRoomId
-		const playerRoomId = player.gameRoomId;
-		//Kolla om spelaren har ett gameRoomId
-		if (!playerRoomId) {
-			debug("Spelrumid finns inte");
-			return;
-		}
-
-		//Hämta gameRoom för spelaren
-		const gameRoom = await getGameRoom(playerRoomId);
-		//Kolla om gameRoom finns
-		if (!gameRoom) {
-			debug("Spelrum finns inte");
-			return;
-		}
-
-		//Hämta båda spelarna i gameRoom
-		const players = await getPlayersInRoom(gameRoom.id);
-		const player2 = players[1]; //Får jag tag i andra spelaren såhär?
-
-		//Hur får jag tag i spelarens reactionTime?
-		//Kolla om spelarna har en reactionTime
-		if (!player.reactionTime || !player2.reactionTime) {
-			debug("En eller båda av spelarna har ingen reaktionstid");
-			return;
-		}
-
-		//Uppdatera spelarens reactionTime
-		await updatePlayerTimer(player.id, player.reactionTime);
-
-		//Uppdatera spelarens poäng
-		if (player.reactionTime > player2.reactionTime) {
-			//Om spelaren är snabbast =>
-			await updatePlayerScores(player.id);
-		}
-
-		//Uppdatera rundorna i gameRoom
-		await updateGameRoomRounds(playerRoomId);
-
-		//Om det är spelrunda 10, gameOver
-		if (gameRoom.gameRound === 10) {
-			//Avsluta spelet
-			gameRoom.gameOver = true;
-		}
-
-		//Skicka uppdaterad poängställnng och game status
-		io.to(playerRoomId).emit("showUpdatedGameStatus", data);
-
-		//Återställ timern för reactionTime
-		await resetPlayerTimer(player.id);
-
-		//Börja om, hur gör man det?
-	});
 
 	// - Hantera slutspel efter 10 rundor
 	socket.on("updateResult", async () => {
-		const player = await getPlayerInRoom(socket.id);
-		//Kolla om spelaren finns
-		if (!player) {
-			debug("Spelaren finns inte");
-			return;
-		}
-
-		//Hämta spelarens gameRoomId
-		const playerRoomId = player.gameRoomId;
-		//Kolla om spelaren har ett gameRoomId
-		if (!playerRoomId) {
-			debug("Spelrumid finns inte");
-			return;
-		}
-
-		//Hämta gameRoom för spelaren
-		const gameRoom = await getGameRoom(playerRoomId);
-		//Kolla om gameRoom finns
-		if (!gameRoom) {
-			debug("Spelrum finns inte");
-			return;
-		}
 
 		//Hämta båda spelarna i gameRoom
 		const players = await getPlayersInRoom(gameRoom.id);
