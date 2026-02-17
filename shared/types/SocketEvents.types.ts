@@ -10,7 +10,7 @@ export interface ServerToClientEvents {
     startGameCountdown: () => void;
     showUpdatedGameStatus: (data: UpdateGameStatus) => void;
     showResult: (data: GameResult) => void;
-    playerRageQuit: (username: string) => void;
+    playerRageQuit: (username: string, gameRoomId: string) => void;
     playersInRoom: (players: Player[]) => void;
     virusPositionsAndTime: (data: Virus, randomTime: number) => void;
     waiting: () => void;

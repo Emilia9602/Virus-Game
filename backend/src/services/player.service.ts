@@ -12,7 +12,7 @@ export const createPlayer = async (data: Player) => {
 	return await prisma.player.create({
 		data,
 	});
-}
+};
 
 //Get all players in the room
 /**
@@ -34,8 +34,8 @@ export const getPlayersInRoom = async (gameRoomId: string) => {
  * @returns Player in the room
  */
 
-export const getPlayerInRoom = (playerId: string) => {
-	return prisma.player.findUnique({
+export const getPlayerInRoom = async (playerId: string) => {
+	return await prisma.player.findUnique({
 		where: { id: playerId },
 	});
 };
