@@ -4,7 +4,8 @@
   "scripts": {
     "install": "cd frontend && npm install --include=dev && cd ../backend && npm install --include=dev",
     "build": "cd frontend && npm run build && cd ../backend && npm run build",
-    "start": "cd backend && npx prisma db seed && npm start"
+    "start": "cd backend && npx prisma db seed && npm start",
+    "dev": "npx ts-node backend/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +15,8 @@
   },
   "devDependencies": {
     "@types/node": "^25.2.2",
-    "sass": "^1.97.3"
+    "sass": "^1.97.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

@@ -33,7 +33,7 @@ export const getGameRooms = async () => {
 
 // Hitta ett ledigt rum (med exakt 1 spelare) som väntar på motståndare
 export const getAvailableRoom = async () => {
-	const room = await prisma.gameRoom.findFirst({
+	const rooms = await prisma.gameRoom.findMany({ //Hämta alla aktiva rum
 		where: {
 			gameOver: false, // Rummet måste vara aktivt
 		},
@@ -43,10 +43,10 @@ export const getAvailableRoom = async () => {
 		},
 	});
 
-	// Kolla om rummet har exakt 1 spelare, annars returnera null
-	if (room && room._count.players === 1) return room;
-	return null;
-};
+	//Hitta första rummet som har exakt 1 spelare
+	const availableRoom = rooms.find(room => room._count.players === 1);
+	return availableRoom ?? null;
+	};
 
 // Koppla en spelare till ett rum
 export const addPlayerToRoom = async (playerId: string, roomId: string): Promise<Player> => {

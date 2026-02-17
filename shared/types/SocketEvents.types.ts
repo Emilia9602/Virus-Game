@@ -7,10 +7,12 @@ export {}
 
 // Events emitted by the server to the client
 export interface ServerToClientEvents {
-    startGameCountdown: () => void;
+    startGameCountDown: () => void;
+    countDown: (number: number) => void;
     showUpdatedGameStatus: (data: UpdateGameStatus) => void;
     showResult: (data: GameResult) => void;
     playerRageQuit: (username: string) => void;
+    gameStart: () => void;
 }
 
 // Events emitted by the client to the server

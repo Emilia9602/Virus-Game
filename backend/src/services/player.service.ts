@@ -1,4 +1,3 @@
-import { Player } from "../../generated/prisma/client.ts";
 import { prisma } from "../lib/prisma.ts";
 
 //Create player
@@ -8,11 +7,18 @@ import { prisma } from "../lib/prisma.ts";
  * @returns {Player} Player
  */
 
-export const createPlayer = async (data: Player) => {
+//Skapa spelare
+export const createPlayer = async (data: {
+	username: string;
+	gameRoomId: string;
+	score: number;
+	reactionTime: number;
+	socketId: string;
+}) => {
 	return await prisma.player.create({
 		data,
 	});
-}
+};
 
 //Get all players in the room
 /**
@@ -20,6 +26,13 @@ export const createPlayer = async (data: Player) => {
  * @param gameRoomId  ID of the room
  * @returns Players in the room
  */
+
+//Hämta spelare via socketId
+export const getPlayerInRoom = (socketId: string) => {
+	return prisma.player.findFirst({
+		where: { socketId },
+	});
+};
 
 export const getPlayersInRoom = async (gameRoomId: string) => {
 	return await prisma.player.findMany({
@@ -34,11 +47,6 @@ export const getPlayersInRoom = async (gameRoomId: string) => {
  * @returns Player in the room
  */
 
-export const getPlayerInRoom = (playerId: string) => {
-	return prisma.player.findUnique({
-		where: { id: playerId },
-	});
-};
 
 //Update  Player's reaktionstid
 /**

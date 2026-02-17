@@ -3,12 +3,25 @@ import { io, Socket } from "socket.io-client";
 import "./assets/scss/style.scss";
 import { createFirstPage } from "./firstPage";
 import { createWaitingRoom } from "./waitingRoom";
+import { createGamePage } from "./gamePage"
+
+let currentNickname = "";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 console.log("🙇 Connecting to Socket.IO Server at:", SOCKET_HOST);
 
 // Connect to Socket.IO Server
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_HOST);
+
+socket.on("countDown", (num) => {
+	console.log("Countdown:", num);
+});
+socket.on("gameStart", () => {
+	console.log("Spelet startar nu!");
+	app.innerHTML = "";
+	const gamePage = createGamePage(currentNickname);
+	app.appendChild(gamePage);
+});
 
 //DOM References
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -17,6 +30,7 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 function showFirstPage() {
 	app.innerHTML = "";
 	const firstPage = createFirstPage((nickname) => {
+		currentNickname = nickname;
 		showWaitingRoom(nickname);
 	});
 	app.appendChild(firstPage);
@@ -24,7 +38,11 @@ function showFirstPage() {
 
 function showWaitingRoom(nickname: string) {
 	app.innerHTML = "";
-	const waitingRoom = createWaitingRoom(nickname, showFirstPage);
+	const waitingRoom = createWaitingRoom(
+		nickname,
+		() => showFirstPage(),
+		() => createGamePage(nickname)
+	);
 	app.appendChild(waitingRoom);
 }
 showFirstPage();

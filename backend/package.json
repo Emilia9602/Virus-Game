@@ -42,6 +42,8 @@
     "globals": "^17.1.0",
     "npm-run-all2": "^8.0.4",
     "prisma": "^6.19.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
     "type-coverage": "^2.29.7",
     "typescript": "^5.9.3",
