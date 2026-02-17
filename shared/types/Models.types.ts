@@ -14,8 +14,8 @@ export interface Player {
 
 export interface GameRoom {
     id: string;
-    gameOver: boolean;
-    gameRound: number; 
+   // gameOver?: boolean;
+    // gameRound?: number; 
     players?: Player[];
 }
 

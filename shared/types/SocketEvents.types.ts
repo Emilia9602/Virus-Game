@@ -12,14 +12,16 @@ export interface ServerToClientEvents {
     showUpdatedGameStatus: (data: UpdateGameStatus) => void;
     showResult: (data: GameResult) => void;
     playerRageQuit: (username: string) => void;
-    gameStart: () => void;
+    playersInRoom: (players: Player[]) => void;
+    virusPositionsAndTime: (data: Virus, randomTime: number) => void;
+    waiting: () => void;
 }
 
 // Events emitted by the client to the server
 export interface ClientToServerEvents {
     playerJoinRequest: (
         username: string,
-        callback: (response: PlayerJoinRequest) => void
+        callback: (response: PlayerJoinResponse) => void
     ) => void;
 
     updateGameStatus: (
@@ -48,7 +50,12 @@ export interface RoomWithPlayers extends GameRoom {
 
 export interface PlayerJoinRequest {
     success: boolean;
-    gameRoom: RoomWithPlayers | null;
+    gameRoom: RoomWithPlayers | null; 
+}
+
+export interface PlayerJoinResponse{
+    success: boolean;
+    gameRoomId: string;
 }
 
 export interface UpdateGameStatus {
@@ -66,4 +73,9 @@ export interface GameResult {
 
 export interface CountDown {
     threeTwoOne: number[],
+}
+
+export interface Virus {
+    positionX: number;
+    positionY: number;
 }

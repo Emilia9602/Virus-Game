@@ -2,19 +2,37 @@
  * Socket Controller
  */
 // backend/src/controllers/socket.controller.ts
-import type { ClientToServerEvents, ServerToClientEvents, PlayerJoinRequest } from "@shared/types/SocketEvents.types.ts";
+import type {
+	ClientToServerEvents,
+	ServerToClientEvents,
+} from "@shared/types/SocketEvents.types.ts";
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
-import { createPlayer, deletePlayerInRoom, getPlayerInRoom, getPlayersInRoom, resetPlayerTimer, updatePlayerScores, updatePlayerTimer } from "../services/player.service.ts";
-import { createRoom, getAvailableRoom, addPlayerToRoom, getGameRoom, updateGameRoomRounds } from "../services/gameRoom.service.ts";
-import { createPostGame } from "../services/postgame.service.ts";
+import {
+	createPlayer,
+	deletePlayerInRoom,
+	getPlayerInRoom,
+	getPlayersInRoom,
+	//resetPlayerTimer,
+	//updatePlayerScores,
+	//updatePlayerTimer,
+} from "../services/player.service.ts";
+import {
+	createRoom,
+	//getGameRoom,
+	//updateGameRoomRounds,
+	getGameRooms,
+} from "../services/gameRoom.service.ts";
+//import { createPostGame } from "../services/postgame.service.ts";
+import { GameRoom } from "@shared/types/Models.types.ts";
+import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
 
 const debug = Debug("backend:socket_controller");
 debug("Socket Controller initialized");
 
 export const handleConnection = (
 	socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-	_io: Server<ClientToServerEvents, ServerToClientEvents>
+	io: Server<ClientToServerEvents, ServerToClientEvents>,
 ) => {
 	debug("🙋 A user connected with id: %s", socket.id);
 
@@ -39,69 +57,66 @@ export const handleConnection = (
 		}
 
 		//Ta bort spelare med socket.id
-		deletePlayerInRoom(player.id);
+		await deletePlayerInRoom(player.id);
 
 		//Berätta för den andra spelaren att motståndaren rageQuita
-		_io.to(playerRoomId).emit("playerRageQuit", player.username);
-
+		io.to(playerRoomId).emit("playerRageQuit", player.username);
 	});
 
 	// Spelare ansluter till kö
 	socket.on("playerJoinRequest", async (username, callback) => {
-		try {
-			// Skapa spelare
-			const player = await createPlayer({
-				id: socket.id,
-				username,
-				gameRoomId: "",
-				score: 0,
-				reactionTime: 0, // Prisma-genererat fält
-			});
+		// 1. Hitta ledigt rum eller skapa nytt
+		const rooms: GameRoom[] = await getGameRooms();
 
-			// Hitta ledigt rum eller skapa nytt
-			const room = await getAvailableRoom() ?? await createRoom();
+		// 2. Hitta spelrum med en Player
+		let gameRoom = rooms.find((room) => room.players?.length === 1);
 
-			// Koppla spelare till rummet
-			await addPlayerToRoom(player.id, room.id);
+		// 3.Om ej ledigt rum finns - skapa ett nytt
+		if (!gameRoom) {
+			gameRoom = await createRoom();
+		}
 
-			// Joina socket.io rummet
-			socket.join(room.id);
+		// 4. Joina (socket.io) game-rummet
+		socket.join(gameRoom.id);
 
-			// Hämta alla spelare i rummet
-			const playersInRoom = await getPlayersInRoom(room.id);
+		// 5. Skapa spelare/användare
+		await createPlayer({
+			id: socket.id,
+			username,
+			gameRoomId: gameRoom.id,
+			score: 0,
+			reactionTime: 0, // Prisma-genererat fält
+		});
 
-			// Skapa korrekt PlayerJoinRequest med _count
-			const response: PlayerJoinRequest = {
-				success: true,
-				gameRoom: {
-					id: room.id,
-					gameOver: room.gameOver,
-					gameRound: room.gameRound,
-					players: playersInRoom,
-					_count: {
-						players: playersInRoom.length,
-					},
-				},
-			};
+		// 6. Skicka svar till klienten
+		callback({
+			success: true,
+			gameRoomId: gameRoom.id,
+		});
 
-			// Skicka svar till klienten
-			callback(response);
+		// 7. Hämta alla spelare i rummet
+		const playersInRoom = await getPlayersInRoom(gameRoom.id);
 
-			// Om rummet är fullt (2 spelare), starta spelet
-			if (playersInRoom.length === 2) {
-				_io.to(room.id).emit("startGameCountdown");
-			}
-		} catch (error) {
-			debug("Fel vid playerJoinRequest: %o", error);
-			callback({ success: false, gameRoom: null });
+		// 8. Om rummet är fullt (2 spelare), starta spelet annars vänta
+		if (playersInRoom.length === 2) {
+			io.to(gameRoom.id).emit("startGameCountdown"); // skicka t frontend
+			io.to(gameRoom.id).emit("playersInRoom", playersInRoom);
+
+			// get virus position and time
+
+			const { virus, setTimeOutTimer } = getVirusPositionAndTime();
+			io.to(gameRoom.id).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+		} else {
+			io.to(gameRoom.id).emit("waiting");
 		}
 	});
 
+
+/*
 	// Här kan du lägga till:
 
 	// - Countdown till spelet startar
 	socket.on("countDown", async (callback) => {
-
 		const player = await getPlayerInRoom(socket.id);
 		//Kolla om spelaren finns
 		if (!player) {
@@ -124,20 +139,18 @@ export const handleConnection = (
 		// Hämta alla spelare i rummet
 		const playersInRoom = await getPlayersInRoom(playerRoomId);
 
-
 		//Tänkte kolla här om det finns 2 spelare, starta countdown..
-			setTimeout(() => {
-				callback(three);
-			}, 1000)
+		setTimeout(() => {
+			callback(three);
+		}, 1000);
 
-			//Är jag helt ute och cyklar? Ska detta vara i main.ts istället?
-	})
+		//Är jag helt ute och cyklar? Ska detta vara i main.ts istället?
+	});
 
 	// - Slumpa virus-position och tid
 
 	// - Hantera spelrundor, reaktionstid och poäng
 	socket.on("updateGameStatus", async (data) => {
-
 		//Hämta spelaren
 		const player = await getPlayerInRoom(socket.id);
 		//Kolla om spelaren finns
@@ -192,7 +205,7 @@ export const handleConnection = (
 		}
 
 		//Skicka uppdaterad poängställnng och game status
-		_io.to(playerRoomId).emit("showUpdatedGameStatus", data);
+		io.to(playerRoomId).emit("showUpdatedGameStatus", data);
 
 		//Återställ timern för reactionTime
 		await resetPlayerTimer(player.id);
@@ -202,7 +215,6 @@ export const handleConnection = (
 
 	// - Hantera slutspel efter 10 rundor
 	socket.on("updateResult", async () => {
-
 		const player = await getPlayerInRoom(socket.id);
 		//Kolla om spelaren finns
 		if (!player) {
@@ -233,7 +245,9 @@ export const handleConnection = (
 		if (gameRoom.gameOver === true) {
 			const result = await createPostGame(players);
 
-			_io.to(playerRoomId).emit("showResult", result);
+			io.to(playerRoomId).emit("showResult", result);
 		}
-	})
+	});
+};
+*/
 };
