@@ -1,4 +1,4 @@
-import { createFirstPage } from "./firstPage";
+//import { createFirstPage } from "./firstPage";
 
 export function createWaitingRoom(
 	nickname: string,

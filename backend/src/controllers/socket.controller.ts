@@ -13,17 +13,17 @@ import {
 	deletePlayerInRoom,
 	getPlayerInRoom,
 	getPlayersInRoom,
-	resetPlayerTimer,
-	updatePlayerScores,
-	updatePlayerTimer,
+	//resetPlayerTimer,
+	//updatePlayerScores,
+	//updatePlayerTimer,
 } from "../services/player.service.ts";
 import {
 	createRoom,
-	getGameRoom,
-	updateGameRoomRounds,
+	//getGameRoom,
+	//updateGameRoomRounds,
 	getGameRooms,
 } from "../services/gameRoom.service.ts";
-import { createPostGame } from "../services/postgame.service.ts";
+//import { createPostGame } from "../services/postgame.service.ts";
 import { GameRoom } from "@shared/types/Models.types.ts";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
 
@@ -60,7 +60,7 @@ export const handleConnection = (
 		await deletePlayerInRoom(player.id);
 
 		//Berätta för den andra spelaren att motståndaren rageQuita
-		_io.to(playerRoomId).emit("playerRageQuit", player.username);
+		io.to(playerRoomId).emit("playerRageQuit", player.username);
 	});
 
 	// Spelare ansluter till kö
@@ -111,8 +111,8 @@ export const handleConnection = (
 		}
 	});
 
-	
 
+/*
 	// Här kan du lägga till:
 
 	// - Countdown till spelet startar
@@ -248,4 +248,6 @@ export const handleConnection = (
 			io.to(playerRoomId).emit("showResult", result);
 		}
 	});
+};
+*/
 };
