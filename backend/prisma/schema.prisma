@@ -15,18 +15,18 @@ datasource db {
 }
 
 model Player {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  id           String  @id @map("_id")
   username     String
   socketId     String @unique
   gameRoomId   String? @db.ObjectId
-  score        Int    @default(0)
-  reactionTime Int?   
+  score        Int     @default(0)
+  reactionTime Int?
 
   GameRoom GameRoom? @relation(fields: [gameRoomId], references: [id])
 }
 
 model GameRoom {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   gameOver  Boolean? @default(false)
   gameRound Int?     @default(0)
 

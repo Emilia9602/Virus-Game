@@ -37,33 +37,6 @@ export const handleConnection = (
 ) => {
 	debug("🙋 A user connected with id: %s", socket.id);
 
-	// Hantera disconnect
-	socket.on("disconnect", async () => {
-		debug("👋 A user disconnected with id: %s", socket.id);
-
-		//Hämta spelaren
-		const player = await getPlayerInRoom(socket.id);
-		//Kolla om spelaren finns
-		if (!player) {
-			debug("Spelaren finns inte");
-			return;
-		}
-
-		//Hämta spelarens gameRoomId
-		const playerRoomId = player.gameRoomId;
-		//Kolla om spelaren har ett gameRoomId
-		if (!playerRoomId) {
-			debug("Spelrumid finns inte");
-			return;
-		}
-
-		//Ta bort spelare med socket.id
-		await deletePlayerInRoom(player.id);
-
-		//Berätta för den andra spelaren att motståndaren rageQuita
-		io.to(playerRoomId).emit("playerRageQuit", player.username);
-	});
-
 	// Spelare ansluter till kö
 	socket.on("playerJoinRequest", async (username, callback) => {
 		try {
@@ -77,6 +50,9 @@ export const handleConnection = (
 		// 3.Om ej ledigt rum finns - skapa ett nytt
 		if (!gameRoom) {
 			gameRoom = await createRoom();
+			console.log(`🆕 Skapade nytt rum med id: ${gameRoom.id}`);
+		} else {
+			console.log(`🟢 Hittade ledigt rum med id: ${gameRoom.id}`);
 		}
 
 		if (!gameRoom) {
@@ -87,6 +63,7 @@ export const handleConnection = (
 
 		// 4. Joina (socket.io) game-rummet
 		socket.join(gameRoom.id);
+		console.log(`🎮 Spelare "${username}" anslöt till rum: ${gameRoom.id}`);
 
 		// 5. Skapa spelare/användare
 		await createPlayer({
@@ -148,9 +125,39 @@ export const handleConnection = (
 
 
 
+	// Hantera disconnect
+	socket.on("disconnect", async () => {
+		debug("👋 A user disconnected with id: %s", socket.id);
 
-/*
+		//Hämta spelaren
+		const player = await getPlayerInRoom(socket.id);
+
+		//Kolla om spelaren finns
+		if (!player) {
+			return;
+		}
+
+		//Ta bort spelare med socket.id
+		await deletePlayerInRoom(socket.id);
+
+		// om en spelare disconnectar/ragequitta informera andra spelaren i rummet
+
+		if (player.gameRoomId) {
+			io.to(player.gameRoomId).emit("playerRageQuit", player.username, player.gameRoomId);
+		}
+	});
+
+	/*
 	// Här kan du lägga till:
+
+	//Hämta spelarens gameRoomId
+		const playerRoomId = player.gameRoomId;
+
+		//Kolla om spelaren har ett gameRoomId
+		if (!playerRoomId) {
+			debug("Spelrumid finns inte");
+			return;
+		}
 
 	// - Countdown till spelet startar
 	socket.on("countDown", async (callback) => {
@@ -161,13 +168,7 @@ export const handleConnection = (
 			return;
 		}
 
-		//Hämta spelarens gameRoomId
-		const playerRoomId = player.gameRoomId;
-		//Kolla om spelaren har ett gameRoomId
-		if (!playerRoomId) {
-			debug("Spelrumid finns inte");
-			return;
-		}
+
 
 		const three = 3;
 		const two = 2;
