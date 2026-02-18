@@ -16,7 +16,7 @@ datasource db {
 }
 
 model Player {
-  id           String  @id @map("_id")
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
   username     String
   socketId     String @unique
   gameRoomId   String? @db.ObjectId

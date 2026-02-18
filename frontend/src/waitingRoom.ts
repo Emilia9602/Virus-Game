@@ -64,6 +64,8 @@ export function createWaitingRoom(
 
         // Om siffran är 0 -> NAVIGERA TILL SPELSIDAN
         if (num === 0) {
+			socket.off("startGameCountDown");
+			socket.off("countDown");
             console.log("Nedräkning klar! Navigerar till gamePage.");
             goToGamePage();
         }
@@ -84,6 +86,8 @@ export function createWaitingRoom(
     exitButton.className ="exit-button";
     exitButton.onclick = () => {
         clearInterval(dotsInterval); // Städa upp intervallet om man går ur
+		socket.off("startGameCountDown");
+		socket.off("countDown");
         goToFirstPage();
     };
     container.appendChild(exitButton);
