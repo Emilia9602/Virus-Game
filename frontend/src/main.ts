@@ -8,7 +8,7 @@ import { createFirstPage } from "./firstPage";
 import { createWaitingRoom } from "./waitingRoom";
 import { createGamePage } from "./gamePage"
 
-let currentNickname = "";
+//let currentNickname = "";
 
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 console.log("🙇 Connecting to Socket.IO Server at:", SOCKET_HOST);
@@ -45,7 +45,7 @@ function showGamePage(nickname: string) {
 function showFirstPage() {
     app.innerHTML = "";
     const firstPage = createFirstPage((nickname) => {
-        currentNickname = nickname;
+        //currentNickname = nickname;
         showWaitingRoom(nickname);
     });
     app.appendChild(firstPage);
