@@ -91,9 +91,8 @@ export const handleConnection = (
 				let count = 3;
 				const countdownInterval = setInterval(async () => {
 					io.to(gameRoom.id).emit("countDown", count);
-					count--;
 
-					if (count < 0) {
+					if (count === 0) {
 						clearInterval(countdownInterval);
 
 						//Skapa nytt spelrum
@@ -120,6 +119,7 @@ export const handleConnection = (
 							debug("En eller båda av spelarna har ingen reaktionstid");
 							return;
 						}
+
 
 						//Uppdatera spelarnas reactionTime
 						await updatePlayerTimer(player1.id, player1.reactionTime);
@@ -167,7 +167,9 @@ export const handleConnection = (
 						//Skicka virusposition till nya rummet
 						const { virus, setTimeOutTimer } = getVirusPositionAndTime();
 						io.to(newGameRoom.id).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+						return;
 					}
+					count--;
 				}, 1000);
 			} else {
 				io.to(gameRoom.id).emit("waiting");
