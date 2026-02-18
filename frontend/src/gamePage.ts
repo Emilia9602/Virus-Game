@@ -1,23 +1,25 @@
 export function createGamePage(nickname: string): HTMLElement {
-	const container = document.createElement("section");
-	container.className = "game-page";
+    console.log("LOG 15: createGamePage() called for:", nickname);
 
-	const title = document.createElement("h2");
-	title.textContent = `Welcome to the game, ${nickname}!`;
+    const container = document.createElement("section");
+    container.className = "game-page";
 
-	//Lägg till spelstatus
-	const status = document.createElement("div");
-	status.className = "game-status";
-	status.textContent = "Waiting for opponent...";
+    container.innerHTML = `
+        <div class="game-ui">
+            <h2>Welcome, ${nickname}!</h2>
+            <div class="game-status">Waiting for virus...</div>
+            <div class="scores">You: 0 | Opponent: 0</div>
+        </div>
 
-	//Lägg till poängvisning
-	const scores = document.createElement("div");
-	scores.className = "scores";
-	scores.textContent = "Scores will appear here";
+        <div class="game-board-wrapper" style="width: 600px; height: 600px; margin: 0 auto; border: 5px solid #333;">
+            <div id="game-area" class="gridSystem">
+                <div id="virus" class="virus-target" style="display: none; cursor: pointer; font-size: 2rem; display: flex; align-items: center; justify-content: center;">
+                    🦠
+                </div>
+            </div>
+        </div>
+    `;
 
-	container.appendChild(title);
-	container.appendChild(status);
-	container.appendChild(scores);
-
-	return container;
+    console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
+    return container;
 }

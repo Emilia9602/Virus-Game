@@ -10,6 +10,7 @@ export interface Player {
     gameRoomId?: string | null;
     score: number;
     reactionTime?: number | null;
+    socketId?: string | null;
 }
 
 export interface GameRoom {

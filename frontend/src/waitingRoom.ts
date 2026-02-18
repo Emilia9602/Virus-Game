@@ -7,6 +7,7 @@ export function createWaitingRoom(
     goToFirstPage: () => void,
     goToGamePage: () => void
 ): HTMLElement {
+    console.log("LOG 8: createWaitingRoom() called for:", nickname);
     const container = document.createElement("section");
     container.className = "waiting-room";
 
@@ -41,13 +42,14 @@ export function createWaitingRoom(
     // --- SOCKET LOGIK ---
 
     // 1. Skicka förfrågan om att gå med
+    console.log("LOG 9: Emitting playerJoinRequest");
     socket.emit("playerJoinRequest", nickname, (response: { success: boolean; gameRoomId: string}) => {
-        console.log("Join response:", response);
+        console.log("LOG 9.1: Join response from server:", response);
     });
 
     // 2. När backend säger att 2 spelare är redo
-    socket.on("startGameCountDown", () => {
-        console.log("2 spelare redo! Förbereder nedräkning...");
+    socket.on("startGame", () => {
+        console.log("LOG 11: startGame event received");
 
         // Stoppa punkt-animationen
         clearInterval(dotsInterval);
@@ -55,18 +57,23 @@ export function createWaitingRoom(
 
         // Byt text
         waitingText.textContent = "Game starts in...";
+
+        // FORCE START: If you want the page to switch immediately when LOG 11 appears:
+        console.log("LOG 11.1: Triggering goToGamePage from startGame event");
+        goToGamePage();
     });
 
     // 3. Lyssna på siffrorna (3, 2, 1, 0)
     socket.on("countDown", (num) => {
+        console.log("LOG 12.1: countDown event received, value:", num);
         // Visa siffran i UI
         countdownDisplay.textContent = num.toString();
 
         // Om siffran är 0 -> NAVIGERA TILL SPELSIDAN
         if (num === 0) {
-			socket.off("startGameCountDown");
-			socket.off("countDown");
-            console.log("Nedräkning klar! Navigerar till gamePage.");
+            console.log("LOG 12.2: Countdown reached 0. Cleaning up and calling goToGamePage");
+            socket.off("startGame");
+            socket.off("countDown");
             goToGamePage();
         }
     });
@@ -85,9 +92,10 @@ export function createWaitingRoom(
     exitButton.textContent = "Exit";
     exitButton.className ="exit-button";
     exitButton.onclick = () => {
-        clearInterval(dotsInterval); // Städa upp intervallet om man går ur
-		socket.off("startGameCountDown");
-		socket.off("countDown");
+        console.log("LOG EXIT: User clicked exit button");
+        clearInterval(dotsInterval);
+        socket.off("startGame");
+        socket.off("countDown");
         goToFirstPage();
     };
     container.appendChild(exitButton);

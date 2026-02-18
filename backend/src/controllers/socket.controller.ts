@@ -1,7 +1,6 @@
 /**
  * Socket Controller
  */
-// backend/src/controllers/socket.controller.ts
 import type {
 	ClientToServerEvents,
 	ServerToClientEvents,
@@ -13,21 +12,10 @@ import {
 	deletePlayerInRoom,
 	getPlayerInRoom,
 	getPlayersInRoom,
-	resetPlayerTimer,
-	updatePlayerScores,
-	updatePlayerTimer,
 } from "../services/player.service.ts";
-import {
-	createRoom,
-	// getGameRooms,
-	addPlayerToRoom,
-	getAvailableRoom,
-	updateGameRoomRounds,
-} from "../services/gameRoom.service.ts";
-//import { createPostGame } from "../services/postgame.service.ts";
-// import { GameRoom } from "@shared/types/Models.types.ts";
+import { createRoom, getGameRooms } from "../services/gameRoom.service.ts";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
-import { createPostGame } from "../services/postgame.service.ts";
+import { GameRoom } from "@shared/types/Models.types.ts";
 
 const debug = Debug("backend:socket_controller");
 debug("Socket Controller initialized");
@@ -39,74 +27,9 @@ export const handleConnection = (
 	debug("🙋 A user connected with id: %s", socket.id);
 
 	// Spelare ansluter till kö
-	socket.on("playerJoinRequest", async (username, callback) => {
-		try {
-			debug("playerJoinRequest mottagen från: %s", socket.id);
-
-			let gameRoom = await getAvailableRoom();
-			debug("Hittade rum: %s", gameRoom?.id ?? "inget rum hittades");
-
-			// resten av koden...
-
-			// 3.Om ej ledigt rum finns - skapa ett nytt
-			if (!gameRoom) {
-				gameRoom = await createRoom();
-				console.log(`🆕 Skapade nytt rum med id: ${gameRoom.id}`);
-			} else {
-				console.log(`🟢 Hittade ledigt rum med id: ${gameRoom.id}`);
-			}
-
-			if (!gameRoom) {
-				debug("Kunde inte skapa eller hitta rum");
-				callback({ success: false, gameRoomId: "" });
-				return;
-			}
-
-			// 4. Joina (socket.io) game-rummet
-			socket.join(gameRoom.id);
-			console.log(`🎮 Spelare "${username}" anslöt till rum: ${gameRoom.id}`);
-
-			// 5. Skapa spelare/användare
-			await createPlayer({
-				socketId: socket.id,
-				username,
-				gameRoomId: gameRoom.id,
-				score: 0,
-				reactionTime: 0, // Prisma-genererat fält
-			});
-
-			// 6. Skicka svar till klienten
-			callback({
-				success: true,
-				gameRoomId: gameRoom.id,
-			});
-
-			// 7. Hämta alla spelare i rummet
-			const playersInRoom = await getPlayersInRoom(gameRoom.id);
-
-			// 8. Om rummet är fullt (2 spelare), starta spelet annars vänta
-			if (playersInRoom.length === 2) {
-				io.to(gameRoom.id).emit("startGameCountDown"); // skicka t frontend
-
-				let count = 3;
-				const countdownInterval = setInterval(async () => {
-					io.to(gameRoom.id).emit("countDown", count);
-
-					if (count === 0) {
-						clearInterval(countdownInterval);
-
-						//Skapa nytt spelrum
-						const newGameRoom = await createRoom();
+	/*
 
 
-						//Flytta båda spelarna till det nya rummet
-						for (const p of playersInRoom) {
-							await addPlayerToRoom(p.id, newGameRoom.id);
-							io.sockets.to(p.socketId).socketsJoin(newGameRoom.id);
-						}
-
-						//Lämna waiting room
-						io.socketsLeave(gameRoom.id);
 
 						//Emilias nya kod < - - - - -
 
@@ -178,10 +101,59 @@ export const handleConnection = (
 			debug("Error in playerJoinRequest:", err);
 			console.error("Error:", err);
 		}
+	}); */
+
+	// Spelare ansluter till kö
+	socket.on("playerJoinRequest", async (username, callback) => {
+		// 1. Hitta ledigt rum eller skapa nytt
+		const rooms: GameRoom[] = await getGameRooms();
+
+		// 2. Hitta spelrum med en Player
+		let gameRoom = rooms.find((room) => room.players?.length === 1);
+
+		// 3.Om ej ledigt rum finns - skapa ett nytt
+		if (!gameRoom) {
+			gameRoom = await createRoom();
+			console.log(`Skapade nytt rum med id: ${gameRoom.id}`);
+		} else {
+			console.log(`Hittade ledigt rum med id: ${gameRoom.id}`);
+		}
+
+		// 4. Joina (socket.io) game-rummet
+		socket.join(gameRoom.id);
+		console.log(`Spelare "${username}" anslöt till rum: ${gameRoom.id}`);
+
+		// 5. Skapa spelare/användare
+		await createPlayer({
+			id: socket.id,
+			socketId: socket.id,
+			username,
+			gameRoomId: gameRoom.id,
+			score: 0,
+			reactionTime: 0, // Prisma-genererat fält
+		});
+
+		// 6. Skicka svar till klienten
+		callback({
+			success: true,
+			gameRoomId: gameRoom.id,
+		});
+
+		// 7. Hämta alla spelare i rummet
+		const playersInRoom = await getPlayersInRoom(gameRoom.id);
+
+		// 8. Om rummet är fullt (2 spelare), starta spelet annars vänta
+		if (playersInRoom.length === 2) {
+			io.to(gameRoom.id).emit("startGame"); // skicka t frontend
+			io.to(gameRoom.id).emit("playersInRoom", playersInRoom);
+
+			// get virus position and time
+			const { virus, setTimeOutTimer } = getVirusPositionAndTime();
+			io.to(gameRoom.id).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+		} else {
+			io.to(gameRoom.id).emit("waiting");
+		}
 	});
-
-
-
 
 	// Hantera disconnect
 	socket.on("disconnect", async () => {
