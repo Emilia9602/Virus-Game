@@ -27,6 +27,7 @@ import {
 //import { createPostGame } from "../services/postgame.service.ts";
 // import { GameRoom } from "@shared/types/Models.types.ts";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
+import { createPostGame } from "../services/postgame.service.ts";
 
 const debug = Debug("backend:socket_controller");
 debug("Socket Controller initialized");
@@ -125,7 +126,7 @@ export const handleConnection = (
 						await updatePlayerTimer(player2.id, player2.reactionTime);
 
 						//Uppdatera spelarnas poäng
-						if (player1.reactionTime > player2.reactionTime) {
+						if (player1.reactionTime < player2.reactionTime) {
 							//Om spelaren är snabbast =>
 							await updatePlayerScores(player1.id);
 						} else {
@@ -149,6 +150,14 @@ export const handleConnection = (
 						//Återställ timern för reactionTime
 						await resetPlayerTimer(player1.id);
 						await resetPlayerTimer(player2.id);
+
+						//Om det gått 10 rundor, skicka resultatet
+						if (gameRoom.gameOver === true) {
+							const result = await createPostGame(playersInRoom);
+
+							//Skicka resultatet
+							io.to(gameRoom.id).emit("showResult", result);
+						}
 
 						//Slut på Emilias kod just nu < - - - - -
 
@@ -193,25 +202,4 @@ export const handleConnection = (
 			io.to(player.gameRoomId).emit("playerRageQuit", player.username, player.gameRoomId);
 		}
 	});
-
-	/*
-	// Här kan du lägga till:
-
-	// - Hantera spelrundor, reaktionstid och poäng
-
-	// - Hantera slutspel efter 10 rundor
-	socket.on("updateResult", async () => {
-
-		//Hämta båda spelarna i gameRoom
-		const players = await getPlayersInRoom(gameRoom.id);
-
-		//Om det gått 10 rundor, skicka resultatet
-		if (gameRoom.gameOver === true) {
-			const result = await createPostGame(players);
-
-			io.to(playerRoomId).emit("showResult", result);
-		}
-	});
-};
-*/
 };
