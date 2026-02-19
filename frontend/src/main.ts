@@ -25,7 +25,7 @@ console.log("LOG 3: #app element found:", !!app);
 function showGamePage(nickname: string) {
     console.log("LOG 14: showGamePage triggered for:", nickname);
     app.innerHTML = "";
-    const gamePage = createGamePage(nickname);
+    const gamePage = createGamePage(nickname, socket);
     console.log("LOG 16: Appending gamePage to DOM");
     app.appendChild(gamePage);
 }
