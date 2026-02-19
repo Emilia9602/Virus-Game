@@ -86,7 +86,6 @@ export function createGamePage(
 			return;
 		}
 
-
 		const virusShownAt = Date.now();
 		const virusElement = container.querySelector("#virus") as HTMLElement;
 		const cells = container.querySelectorAll(".grid-cell");
@@ -112,6 +111,13 @@ export function createGamePage(
 			if (currentGameRoomId) {
 				socket.emit("virusClicked", reactionTime, currentGameRoomId);
 			}
+			//HÄR - - Tänkte att jag tar emot motståndarens tid här? och skriver ut i spelet
+			socket.on("showOpponentTimer", (data: number) => {
+				const opponentClock = container.querySelector("opponentStopWatch");
+				if (opponentClock) {
+					opponentClock.textContent = `${(data / 1000).toFixed(2)}s`;
+				}
+			});
 
 			virusElement.style.display = "none";
 		};
@@ -119,29 +125,29 @@ export function createGamePage(
 
 
 
-// reaction time functions
+	// reaction time functions
 
-const tick = () => {
-    if (!timerStartedAt) return;
+	const tick = () => {
+		if (!timerStartedAt) return;
 
-    const timeElapsed = Date.now() - timerStartedAt;
-    const seconds = Math.floor(timeElapsed / 1000);
-    const milliseconds = timeElapsed % 1000;
+		const timeElapsed = Date.now() - timerStartedAt;
+		const seconds = Math.floor(timeElapsed / 1000);
+		const milliseconds = timeElapsed % 1000;
 
-    // Format time to 00:00:000
-    const latestTickTime = "00:" + String(seconds).padStart(2, "0") + ":" + String(milliseconds).padStart(3, "0");
+		// Format time to 00:00:000
+		const latestTickTime = "00:" + String(seconds).padStart(2, "0") + ":" + String(milliseconds).padStart(3, "0");
 
-    const myStopWatch = container.querySelector("#myStopWatch") as HTMLElement;
-    const opponentStopWatch = container.querySelector("#opponentStopWatch") as HTMLElement;
+		const myStopWatch = container.querySelector("#myStopWatch") as HTMLElement;
+		const opponentStopWatch = container.querySelector("#opponentStopWatch") as HTMLElement;
 
-    // Update clocks live on screen as long as their intervals are running
-    if (myTimer !== null && myStopWatch) {
-        myStopWatch.innerText = latestTickTime;
-    }
-    if (opponentTimer !== null && opponentStopWatch) {
-        opponentStopWatch.innerText = latestTickTime;
-    }
-};
+		// Update clocks live on screen as long as their intervals are running
+		if (myTimer !== null && myStopWatch) {
+			myStopWatch.innerText = latestTickTime;
+		}
+		if (opponentTimer !== null && opponentStopWatch) {
+			opponentStopWatch.innerText = latestTickTime;
+		}
+	};
 
 
 

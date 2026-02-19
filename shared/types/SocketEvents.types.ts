@@ -10,6 +10,7 @@ export interface ServerToClientEvents {
     startGame: () => void;
     countDown: (number: number) => void;
     showUpdatedGameStatus: (data: UpdateGameStatus) => void;
+    showOpponentTimer: (data: number) => void;
     showResult: (data: GameResult) => void;
     playerRageQuit: (username: string, gameRoomId: string) => void;
     playersInRoom: (players: Player[]) => void;
@@ -25,6 +26,12 @@ export interface ClientToServerEvents {
         callback: (response: PlayerJoinResponse) => void
     ) => void;
 
+    updateTimer: (
+        reactionTime: number, 
+       // playerId: string,
+    ) => void;
+
+    //Se om denna används
     updateGameStatus: (
         data: UpdateGameStatus,
         callback: (response: UpdateGameStatus) => void
@@ -60,6 +67,11 @@ export interface PlayerJoinResponse{
     gameRoomId: string;
 }
 
+export interface UpdateTimer {
+    reactionTime: number,
+}
+
+//Se om denna används
 export interface UpdateGameStatus {
     gameRound: number,
     reactionTime: number,

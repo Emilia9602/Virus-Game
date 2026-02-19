@@ -9,7 +9,7 @@ import type {
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
-import { createRoom, getGameRooms } from "../services/gameRoom.service.ts";
+import { createRoom, getGameRoom, getGameRooms } from "../services/gameRoom.service.ts";
 import {
 	createPlayer,
 	deletePlayerInRoom,
@@ -91,6 +91,9 @@ export const handleConnection = (
 
 		// 2. save reakation time in db for this player
 		await updatePlayerTimer(socket.id, reactionTime);
+
+		//HÄR - - Tänkte att detta skickar till den andra spelaren, min reaktionstid?
+		socket.to(gameRoomId).emit("showOpponentTimer", reactionTime)
 		//await updatePlayerScores(socket.id);
 
 		// 3. get both players in the room an compare the reaction times
