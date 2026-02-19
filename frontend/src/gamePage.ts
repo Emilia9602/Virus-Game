@@ -14,8 +14,11 @@ export function createGamePage(
 	const container = document.createElement("section");
 	container.className = "game-page";
 
-	// Vi skapar en variabel för att hålla koll på rummet lokalt i funktionen
+	// variabler
 	let currentGameRoomId: string | null = null;
+	let timerStartedAt: number | null = null;
+	let myTimer: number | null = null;
+	let opponentTimer: number | null = null;
 
 	container.innerHTML = `
         <div class="game-ui">
@@ -33,6 +36,9 @@ export function createGamePage(
             </div>
         </div>
     `;
+
+
+
 
 	// 1. Skapa 100 grid-celler
 	const gameArea = container.querySelector("#game-area") as HTMLElement;
@@ -80,6 +86,7 @@ export function createGamePage(
 			return;
 		}
 
+
 		const virusShownAt = Date.now();
 		const virusElement = container.querySelector("#virus") as HTMLElement;
 		const cells = container.querySelectorAll(".grid-cell");
@@ -110,15 +117,55 @@ export function createGamePage(
 		};
 	});
 
-	// stop timer   call from backend
+
+
+// reaction time functions
+
+const tick = () => {
+    if (!timerStartedAt) return;
+
+    const timeElapsed = Date.now() - timerStartedAt;
+    const seconds = Math.floor(timeElapsed / 1000);
+    const milliseconds = timeElapsed % 1000;
+
+    // Format time to 00:00:000
+    const latestTickTime = "00:" + String(seconds).padStart(2, "0") + ":" + String(milliseconds).padStart(3, "0");
+
+    const myStopWatch = container.querySelector("#myStopWatch") as HTMLElement;
+    const opponentStopWatch = container.querySelector("#opponentStopWatch") as HTMLElement;
+
+    // Update clocks live on screen as long as their intervals are running
+    if (myTimer !== null && myStopWatch) {
+        myStopWatch.innerText = latestTickTime;
+    }
+    if (opponentTimer !== null && opponentStopWatch) {
+        opponentStopWatch.innerText = latestTickTime;
+    }
+};
+
+
 
 	socket.on("stopTimer", (isCurrentPlayer) => {
-		if (isCurrentPlayer)
+		if (isCurrentPlayer) {
+			stopTimer();
+		} else {
+			stopOpponentTimer();
+		}
+	});
 
-	}
+	const stopTimer = () => {
+		if (myTimer !== null) {
+			clearInterval(myTimer);
+			myTimer = null;
+		}
+	};
 
-
-
+	const stopOpponentTimer = () => {
+		if (opponentTimer !== null) {
+			clearInterval(opponentTimer);
+			opponentTimer = null;
+		}
+	};
 
 	// Lyssna på poänguppdateringar från backend
 	socket.on("showUpdatedGameStatus", (data) => {
