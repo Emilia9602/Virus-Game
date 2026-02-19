@@ -185,6 +185,13 @@ body {
 	margin-bottom: 2rem;
 }
 
+.instructions-box {
+	position: absolute;
+	top: 25%;
+	background-color: black;
+	padding: 2%;
+}
+
 // Styling för input-fältet
 .nickname-input {
 	background-color: #0d1117;
@@ -394,4 +401,8 @@ body {
 	.stats-wrapper {
 		flex-direction: row;
 	}
+	.instructions-box {
+	position: absolute;
+	top: 28%;
+}
 }
