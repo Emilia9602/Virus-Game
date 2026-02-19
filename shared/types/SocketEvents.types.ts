@@ -15,6 +15,7 @@ export interface ServerToClientEvents {
     playersInRoom: (players: Player[]) => void;
     virusPositionsAndTime: (data: Virus, randomTime: number) => void;
     waiting: () => void;
+    stopTimer: (playerId: boolean) => void;
 }
 
 // Events emitted by the client to the server
@@ -38,7 +39,7 @@ export interface ClientToServerEvents {
         data: CountDown,
         callback: (threeTwoOne: CountDown) => void
     ) => void;
-    virusClicked: (reactionTime: number) => void;
+    virusClicked: (reactionTime: number, gameRoomId: string) => void;
 }
 
 // RoomWithPlayers extends GameRoom and adds players array and count
