@@ -64,6 +64,7 @@ export function createGamePage(nickname: string, socket: Socket<ServerToClientEv
 		virusElement.onclick = () => {
 			const reactionTime = Date.now() - virusShownAt;
 			socket.emit("virusClicked", reactionTime);
+			console.log(reactionTime);
 		};
 	});
 

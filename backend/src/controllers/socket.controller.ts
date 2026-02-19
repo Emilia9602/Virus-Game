@@ -12,8 +12,10 @@ import {
 	deletePlayerInRoom,
 	getPlayerInRoom,
 	getPlayersInRoom,
+	updatePlayerScores,
+	updatePlayerTimer,
 } from "../services/player.service.ts";
-import { createRoom, getGameRooms } from "../services/gameRoom.service.ts";
+import { createRoom, getGameRooms, updateGameRoomRounds } from "../services/gameRoom.service.ts";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
 import { GameRoom } from "@shared/types/Models.types.ts";
 
@@ -155,7 +157,7 @@ export const handleConnection = (
 		}
 	});
 
-	socket.on ("virusClicked", async (_reactionTime) => {
+	socket.on("virusClicked", async (_reactionTime) => {
 		const player = await getPlayerInRoom(socket.id);
 		if (!player || !player.gameRoomId) return;
 
