@@ -12,8 +12,10 @@ import {
 	deletePlayerInRoom,
 	getPlayerInRoom,
 	getPlayersInRoom,
+	updatePlayerScores,
+	updatePlayerTimer,
 } from "../services/player.service.ts";
-import { createRoom, getGameRooms } from "../services/gameRoom.service.ts";
+import { createRoom, getGameRooms, updateGameRoomRounds } from "../services/gameRoom.service.ts";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
 import { GameRoom } from "@shared/types/Models.types.ts";
 
@@ -155,6 +157,14 @@ export const handleConnection = (
 		}
 	});
 
+	socket.on("virusClicked", async (_reactionTime) => {
+		const player = await getPlayerInRoom(socket.id);
+		if (!player || !player.gameRoomId) return;
+
+		const { virus, setTimeOutTimer } = getVirusPositionAndTime();
+		io.to(player.gameRoomId).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+	});
+
 	// Hantera disconnect
 	socket.on("disconnect", async () => {
 		debug("👋 A user disconnected with id: %s", socket.id);
@@ -177,3 +187,4 @@ export const handleConnection = (
 		}
 	});
 };
+

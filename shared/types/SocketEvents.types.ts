@@ -38,6 +38,7 @@ export interface ClientToServerEvents {
         data: CountDown,
         callback: (threeTwoOne: CountDown) => void
     ) => void;
+    virusClicked: (reactionTime: number) => void;
 }
 
 // RoomWithPlayers extends GameRoom and adds players array and count
