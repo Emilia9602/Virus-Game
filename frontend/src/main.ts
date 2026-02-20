@@ -29,7 +29,6 @@ function showGamePage(nickname: string) {
 		nickname,
 		socket,
 		() => showWaitingRoom(nickname), //Play again
-		() => showFirstPage() //exit
 	);
     console.log("LOG 16: Appending gamePage to DOM");
     app.appendChild(gamePage);

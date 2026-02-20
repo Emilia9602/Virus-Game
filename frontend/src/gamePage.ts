@@ -8,14 +8,10 @@ import type { Player } from "../../backend/generated/prisma/client";
 export function createGamePage(
 	nickname: string,
 	socket: Socket<ServerToClientEvents, ClientToServerEvents>,
-<<<<<<< Updated upstream
+	//------callback-funktion som byter vy och skickar tillbaka spelaren till lobbyn---------//
+	// goToWaitingRoom: () => void,
 ): HTMLElement {
 	console.log("LOG 15: createGamePage() called for:", nickname);
-=======
-	goToWaitingRoom: () => void,
-): HTMLElement {
-    console.log("LOG 15: createGamePage() called for:", nickname);
->>>>>>> Stashed changes
 
 	const container = document.createElement("section");
 	container.className = "game-page";
@@ -42,9 +38,6 @@ export function createGamePage(
             </div>
         </div>
     `;
-
-
-
 
 	// 1. Skapa 100 grid-celler
 	const gameArea = container.querySelector("#game-area") as HTMLElement;
@@ -97,6 +90,27 @@ export function createGamePage(
 		}
 	});
 
+	//-----Play Again knapp, visas när runa 10 är klar---------//
+
+	// const buttonWrapper = document.createElement("div");
+	// buttonWrapper.style.display = "none"; //Dölj knappen tills runda 10 är klar
+	// buttonWrapper.style.textAlign = "center";
+
+	// const playAgainButton = document.createElement("button");
+	// playAgainButton.textContent = "Play Again";
+	// playAgainButton.className = "play-again-button";
+	// playAgainButton.onclick = () => {
+
+	// 	socket.emit("playAgainRequest"); // Rensa backend-data och lämna rummet
+	// 	goToWaitingRoom(); // Gå till väntrummet
+	// };
+
+	// buttonWrapper.appendChild(playAgainButton);
+	// container.appendChild(buttonWrapper);
+
+	//---------------------------------------------------------//
+
+
 	// 3. Virus-logik
 	socket.off("virusPositionsAndTime");
 	let round = 0;
@@ -107,6 +121,7 @@ export function createGamePage(
 			socket.off("virusPositionsAndTime");
 			return;
 		}
+
 
 		//Nollställ timers när nytt virus visas
 		const opponentClock = container.querySelector("#opponentStopWatch");
@@ -146,7 +161,8 @@ export function createGamePage(
 		};
 	});
 
-<<<<<<< Updated upstream
+	//---------koden som försvann som jag la in igen---------//
+
 	socket.on("stopTimer", (isCurrentPlayer) => {
 		if (isCurrentPlayer) {
 			stopTimer();
@@ -180,17 +196,6 @@ export function createGamePage(
 	});*/
 
 	return container;
-}
-=======
-    console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
+	}
+	console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
 
-	const playAgainButton = document.createElement("button");
-	playAgainButton.textContent = "Play Again";
-	playAgainButton.className = "play-again-button";
-	playAgainButton.onclick = () => {
-		goToWaitingRoom();
-	};
-	return container;
-
-}
->>>>>>> Stashed changes
