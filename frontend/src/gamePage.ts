@@ -4,6 +4,7 @@ import type {
 	ServerToClientEvents,
 } from "@shared/types/SocketEvents.types.ts";
 import type { Player } from "../../backend/generated/prisma/client";
+import { createWinnerPage } from "./winnerPage";
 
 export function createGamePage(
 	nickname: string,
@@ -112,12 +113,18 @@ export function createGamePage(
 	container.appendChild(gameOverWrapper);
 
 	//2.2 Hämta spelarnas poäng och uppdatera på sidan
-	socket.on("showScores", (player1Score: number, player2Score: number) => {
-		const scoreEl = container.querySelector(".scores");
-		if (scoreEl) {
-			scoreEl.textContent = `You: ${player1Score} | Opponent: ${player2Score}`;
-		}
-	});
+	// In gamePage.ts (Client)
+socket.on("showScores", (player1Score: number, player2Score: number) => {
+    // Om player1 i listan är JAG, använd player1Score. Annars tvärtom.
+    // Men det enklaste för debug är:
+    console.log(`[SCORE DEBUG] Mottagna poäng: P1: ${player1Score}, P2: ${player2Score}`);
+
+    const scoreEl = container.querySelector(".scores");
+    if (scoreEl) {
+        // Just nu visar du bara värdena rakt av
+        scoreEl.textContent = `Player 1: ${player1Score} | Player 2: ${player2Score}`;
+    }
+});
 
 	//Om en spelare ragequitar, visa namn och play again knapp - - - Behövs roomId här?
 	socket.on("playerRageQuit", (username: string) => {
@@ -244,7 +251,57 @@ export function createGamePage(
 
 			virusElement.style.display = "none";
 		};
-	});
+	});socket.on("virusPositionsAndTime", (virus) => {
+    console.log("[CLIENT] Nytt virus mottaget från servern");
+
+    const virusElement = container.querySelector("#virus") as HTMLElement;
+    const cells = container.querySelectorAll(".grid-cell");
+    const cellIndex = virus.positionY * 10 + virus.positionX;
+    const cell = cells[cellIndex] as HTMLElement;
+
+    if (cell && virusElement) {
+        /**
+         * NOLLSTÄLLNING VID NY RUNDA
+         */
+        const opponentClock = container.querySelector("#opponentStopWatch");
+        const myClock = container.querySelector("#myStopWatch");
+        if (opponentClock && myClock) {
+            opponentClock.textContent = "0.00s";
+            myClock.textContent = "0.00s";
+        }
+
+        // Placera virus och visa det
+        cell.appendChild(virusElement);
+        virusElement.style.display = "flex";
+
+        /**
+         * SYNKAD START
+         */
+        timerStartedAt = Date.now();
+        startMyTimer();
+        startOpponentTimer();
+    }
+
+    virusElement.onclick = () => {
+        const reactionTime = Date.now() - timerStartedAt;
+
+        // Stoppa min timer lokalt direkt
+        stopMyTimer();
+
+        // Uppdatera klockan visuellt direkt
+        const myClock = container.querySelector("#myStopWatch");
+        if (myClock) {
+            myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
+        }
+
+        // Skicka till backend
+        if (currentGameRoomId) {
+            socket.emit("virusClicked", reactionTime, currentGameRoomId);
+        }
+
+        virusElement.style.display = "none";
+    };
+});
 
 	/**
 	 * INDIVIDUELLT STOPP VIA SOCKET
@@ -260,6 +317,18 @@ export function createGamePage(
 		}
 	});
 
+	// connect gamePage with winnerPage
+
+socket.on("currentGameResult", (player1, player2) => {
+    console.log("Spelet är slut, visar vinnarsidan");
+
+    const winnerPage = createWinnerPage(player1, player2);
+    const appContainer = document.querySelector("#app") || document.body;
+    appContainer.innerHTML = "";
+
+    appContainer.appendChild(winnerPage);
+});
+
 	return container;
 }
-console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
+

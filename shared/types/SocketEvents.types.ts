@@ -18,6 +18,7 @@ export interface ServerToClientEvents {
     virusPositionsAndTime: (data: Virus, randomTime: number) => void;
     waiting: () => void;
     stopTimer: (playerId: boolean) => void;
+    currentGameResult: (player1: Player, player2: Player) => void;
 }
 
 // Events emitted by the client to the server

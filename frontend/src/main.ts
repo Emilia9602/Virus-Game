@@ -22,17 +22,6 @@ socket.on("countDown", (num) => {
 const app = document.querySelector<HTMLDivElement>("#app")!;
 console.log("LOG 3: #app element found:", !!app);
 
-function showGamePage(nickname: string) {
-    console.log("LOG 14: showGamePage triggered for:", nickname);
-    app.innerHTML = "";
-    const gamePage = createGamePage(
-		nickname,
-		socket,
-	);
-    console.log("LOG 16: Appending gamePage to DOM");
-    app.appendChild(gamePage);
-}
-
 function showFirstPage() {
     console.log("LOG 4: showFirstPage triggered");
     app.innerHTML = "";
@@ -66,5 +55,20 @@ function showWaitingRoom(nickname: string) {
 socket.on("connect", () => {
     console.log("LOG 0: Socket connected. ID:", socket.id);
 });
+
+
+function showGamePage(nickname: string) {
+    console.log("LOG 14: showGamePage triggered for:", nickname);
+    app.innerHTML = "";
+    const gamePage = createGamePage(
+		nickname,
+		socket,
+	);
+    console.log("LOG 16: Appending gamePage to DOM");
+    app.appendChild(gamePage);
+}
+
+
+
 
 showFirstPage();
