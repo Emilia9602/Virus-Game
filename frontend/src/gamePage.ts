@@ -74,6 +74,31 @@ export function createGamePage(
 		}
 	});
 
+	//Skapar upp knapp för att spela igen men döljer den
+	const buttonWrapper = document.createElement("div");
+	buttonWrapper.style.display = "none"; //Dölj knappen tills runda 10 är klar eller motspelare ragequitar
+	buttonWrapper.style.textAlign = "center";
+
+	const playAgainButton = document.createElement("button");
+	playAgainButton.textContent = "Play Again";
+	playAgainButton.className = "play-again-button"
+
+	buttonWrapper.appendChild(playAgainButton);
+	container.appendChild(buttonWrapper);
+
+	//Skapar upp text om någon ragequitar men döljer den
+	const gameOverWrapper = document.createElement("div");
+	gameOverWrapper.className = "gameOverWrapper";
+	gameOverWrapper.style.display = "none"; //Dölj rutan tills runda 10 är klar eller motspelare ragequitar
+	gameOverWrapper.style.textAlign = "center";
+
+	const gameOverText = document.createElement("p");
+	gameOverText.textContent = "Username ragequit, push button play again";
+	gameOverText.className = "game-over-text";
+
+	gameOverWrapper.appendChild(gameOverText);
+	container.appendChild(gameOverWrapper);
+
 	//2.1 Hämta motspelarens reactionTime och skriv ut
 	socket.on("showOpponentTimer", (data: number) => {
 		const opponentClock = container.querySelector("#opponentStopWatch");
@@ -90,23 +115,23 @@ export function createGamePage(
 		}
 	});
 
+	//Om en spelare ragequitar, visa namn och play again knapp - - - Behövs roomId här?
+	socket.on("playerRageQuit", (username: string, gameRoomId: string) => {
+		//Visar spela igen knapp
+		buttonWrapper.style.display = "block";
+		gameOverWrapper.style.display = "block";
+		gameOverText.textContent = `${username} ragequit, push button play again`;
+
+		//Sätt in så att spelet stoppas, man kan fortfarande trycka på virus just nu
+	});
+
 	//-----Play Again knapp, visas när runa 10 är klar---------//
 
-	// const buttonWrapper = document.createElement("div");
-	// buttonWrapper.style.display = "none"; //Dölj knappen tills runda 10 är klar
-	// buttonWrapper.style.textAlign = "center";
-
-	// const playAgainButton = document.createElement("button");
-	// playAgainButton.textContent = "Play Again";
-	// playAgainButton.className = "play-again-button";
 	// playAgainButton.onclick = () => {
 
 	// 	socket.emit("playAgainRequest"); // Rensa backend-data och lämna rummet
 	// 	goToWaitingRoom(); // Gå till väntrummet
 	// };
-
-	// buttonWrapper.appendChild(playAgainButton);
-	// container.appendChild(buttonWrapper);
 
 	//---------------------------------------------------------//
 
@@ -196,6 +221,6 @@ export function createGamePage(
 	});*/
 
 	return container;
-	}
-	console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
+}
+console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
 

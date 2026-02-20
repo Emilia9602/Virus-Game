@@ -124,6 +124,35 @@
 	}
 }
 
+.gameOverWrapper {
+	display: flex;
+	gap: 1rem;
+	justify-content: flex-end;
+	padding: 1rem 2rem;
+	margin-top: 1rem;
+	@media (max-width: 768px) {
+		justify-content: center;
+		padding: 1rem;
+		margin-top: 0.5rem;
+		}
+		@media (min-width: 768px) {
+			width: fit-content;
+			//Få den att bli centrerad
+			//Visa den mer i mitten?
+		}
+}
+
+.game-over-text {
+	font-family: "Creepster", system-ui;
+	padding: 1rem 2rem;
+	font-size: 2rem;
+	font-weight: bold;
+	border-radius: 50px;
+	border: none;
+	background: linear-gradient(45deg, #d42e19, #218838);
+	color: white;
+}
+
 .exit-game-button {
 	font-family: "Creepster", system-ui;
 	padding: 1rem 2rem;
