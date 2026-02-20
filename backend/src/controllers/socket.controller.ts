@@ -9,7 +9,12 @@ import type {
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
-import { createRoom, getGameRoom, getGameRooms, updateGameRoomRounds } from "../services/gameRoom.service.ts";
+import {
+	createRoom,
+	getGameRoom,
+	getGameRooms,
+	updateGameRoomRounds,
+} from "../services/gameRoom.service.ts";
 import {
 	createPlayer,
 	deletePlayerInRoom,
@@ -82,17 +87,16 @@ export const handleConnection = (
 	});
 
 	// Hantera virus-klick
+	// Hantera virus-klick
 	socket.on("virusClicked", async (reactionTime: number, gameRoomId: string) => {
 		// 1. get player som klickade
 		const player = await getPlayerInRoom(socket.id);
-		if (!player) {
-			return;
-		}
+		if (!player) return;
 
 		// 2. save reakation time in db for this player
 		await updatePlayerTimer(socket.id, reactionTime);
 
-		//2.1 Send reactionTime to opponent
+		// 2.1 Send reactionTime to opponent
 		socket.to(gameRoomId).emit("showOpponentTimer", reactionTime);
 
 		// 3. get both players in the room an compare the reaction times
@@ -100,81 +104,55 @@ export const handleConnection = (
 		if (players.length < 2) return;
 
 		// 4. update both players reaction time and send to frontend
-
-		const updatedPlayer = await getPlayersInRoom(gameRoomId);
-		const [player1, player2] = updatedPlayer;
+		const [player1, player2] = players;
 
 		io.to(player1.id).emit("stopTimer", player1.id === socket.id);
 		io.to(player2.id).emit("stopTimer", player2.id === socket.id);
 
-		// 5. check oif both players have klickat
+		// 5. check if both players have klickat
 		if (player1.reactionTime && player2.reactionTime) {
 			// 6. Jämför vem som var snabbast och uppdatera poäng
 			if (player1.reactionTime < player2.reactionTime) {
 				await updatePlayerScores(player1.id);
 			} else if (player2.reactionTime < player1.reactionTime) {
 				await updatePlayerScores(player2.id);
-			} else if (player1.reactionTime === player2.reactionTime) {
-				//Vad gör vi här? < - - - -
+			} else {
 				console.log("Båda reagera lika snabbt");
 			}
 
-			//6.1 Uppdatera poängen och skicka till frontend
+			// 6.1 Uppdatera poängen och skicka till frontend
 			const updatedPlayerScores = await getPlayersInRoom(gameRoomId);
-			const [player1Score, player2Score] = updatedPlayerScores;
+			const [p1, p2] = updatedPlayerScores;
+			io.to(gameRoomId).emit("showScores", p1.score, p2.score);
 
-			io.to(gameRoomId).emit("showScores", player1Score.score, player2Score.score);
-
-			// 7. Nollställ reaktionstiderna i dbinför nästa runda
-
+			// 7. Nollställ reaktionstiderna i db inför nästa runda
 			await resetPlayerTimer(gameRoomId);
 
-			//Detta händer bara i bakgrunden så att vi vet när runda 10 gått
-			//och vi ska vidare till resultatet
-			//Uppdatera rundorna i gameRoom
+			// Uppdatera rundorna i gameRoom
 			await updateGameRoomRounds(gameRoomId);
 
 			const gameRoom = await getGameRoom(gameRoomId);
 			if (!gameRoom) {
-				debug("Hittade ingen spelrum");
+				debug("Hittade inget spelrum");
 				return;
 			}
-			//Om det är spelrunda 10 -> gameOver
-			if (gameRoom.gameRound === null) {
-				return;
-			} else if (gameRoom.gameRound === 10) {
-				//Avsluta spelet
-				gameRoom.gameOver = true;
+
+			// Om det är spelrunda 10 -> Avbryt och skicka inget nytt virus
+			if (gameRoom.gameRound !== null && gameRoom.gameRound >= 10) {
+				console.log("Game Over - runda 10 nådd");
+				return; // Här stannar vi!
 			}
 
-			// Skicka ut uppdateringen till rummet
-			/*io.to(gameRoomId).emit("showUpdatedGameStatus", {
-				gameRound: 0,
-				reactionTime: reactionTime,
-				score: player.score + 1,
-			});*/
-
-			// logik if both players have clicked on virus add point to fastes player
-			const { virus, setTimeOutTimer } = getVirusPositionAndTime();
-			io.to(gameRoomId).emit("virusPositionsAndTime", virus, setTimeOutTimer);
-		}
-	});
-
-	//-------hanterar play again, rensar bort spelaren från det nuvarande rummet både i databasen och i socket.io---------//
-
-	// socket.on("playAgainRequest", async () => {
-	// 	debug("Player wants to play again: %s", socket.id);
-	// 	const player = await getPlayerInRoom(socket.id);
-
-	// 	if (player && player.gameRoomId) {
-	// 		//Radera spelaren från gamla rummet
-	// 		await deletePlayerInRoom(socket.id);
-	// 		//Lämna rummet i socket.io
-	// 		socket.leave(player.gameRoomId);
-	// 	}
-	// })
-
-	//-----------------------------------//
+			/**
+			 * FRYSTID / PAUS
+			 * Väntar 3 sekunder (3000ms) innan nästa virus skickas.
+			 */
+			setTimeout(() => {
+				const { virus, setTimeOutTimer } = getVirusPositionAndTime();
+				io.to(gameRoomId).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+			}, 3000);
+		} // Slut på if(player1.reactionTime...)
+	}); // Slut på socket.on("virusClicked")
 
 	// Hantera disconnect
 	socket.on("disconnect", async () => {
@@ -198,6 +176,3 @@ export const handleConnection = (
 		}
 	});
 };
-
-
-
