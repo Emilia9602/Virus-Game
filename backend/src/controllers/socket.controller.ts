@@ -9,7 +9,7 @@ import type {
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
-import { createRoom, getGameRoom, getGameRooms } from "../services/gameRoom.service.ts";
+import { createRoom, getGameRoom, getGameRooms, updateGameRoomRounds } from "../services/gameRoom.service.ts";
 import {
 	createPlayer,
 	deletePlayerInRoom,
@@ -92,9 +92,8 @@ export const handleConnection = (
 		// 2. save reakation time in db for this player
 		await updatePlayerTimer(socket.id, reactionTime);
 
-		//HÄR - - Tänkte att detta skickar till den andra spelaren, min reaktionstid?
-		socket.to(gameRoomId).emit("showOpponentTimer", reactionTime)
-		//await updatePlayerScores(socket.id);
+		//2.1 Send reactionTime to opponent
+		socket.to(gameRoomId).emit("showOpponentTimer", reactionTime);
 
 		// 3. get both players in the room an compare the reaction times
 		const players = await getPlayersInRoom(gameRoomId);
@@ -115,19 +114,45 @@ export const handleConnection = (
 				await updatePlayerScores(player1.id);
 			} else if (player2.reactionTime < player1.reactionTime) {
 				await updatePlayerScores(player2.id);
+			} else if (player1.reactionTime === player2.reactionTime) {
+				//Vad gör vi här? < - - - -
+				console.log("Båda reagera lika snabbt");
 			}
 
-			// (Vid exakt samma tid får ingen poäng??
+			//6.1 Uppdatera poängen och skicka till frontend
+			const updatedPlayerScores = await getPlayersInRoom(gameRoomId);
+			const [player1Score, player2Score] = updatedPlayerScores;
+
+			io.to(gameRoomId).emit("showScores", player1Score.score, player2Score.score);
 
 			// 7. Nollställ reaktionstiderna i dbinför nästa runda
 
 			await resetPlayerTimer(gameRoomId);
+
+			//Detta händer bara i bakgrunden så att vi vet när runda 10 gått
+			//och vi ska vidare till resultatet
+			//Uppdatera rundorna i gameRoom
+			await updateGameRoomRounds(gameRoomId);
+
+			const gameRoom = await getGameRoom(gameRoomId);
+			if (!gameRoom) {
+				debug("Hittade ingen spelrum");
+				return;
+			}
+			//Om det är spelrunda 10 -> gameOver
+			if (gameRoom.gameRound === null) {
+				return;
+			} else if (gameRoom.gameRound === 10) {
+				//Avsluta spelet
+				gameRoom.gameOver = true;
+			}
+
 			// Skicka ut uppdateringen till rummet
-			io.to(gameRoomId).emit("showUpdatedGameStatus", {
+			/*io.to(gameRoomId).emit("showUpdatedGameStatus", {
 				gameRound: 0,
 				reactionTime: reactionTime,
 				score: player.score + 1,
-			});
+			});*/
 
 			// logik if both players have clicked on virus add point to fastes player
 			const { virus, setTimeOutTimer } = getVirusPositionAndTime();

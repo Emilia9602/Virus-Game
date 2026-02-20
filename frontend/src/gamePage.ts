@@ -75,12 +75,19 @@ export function createGamePage(
 		}
 	});
 
-	//HÄR - - Tänkte att jag tar emot motståndarens tid här? och skriver ut i spelet
+	//2.1 Hämta motspelarens reactionTime och skriv ut
 	socket.on("showOpponentTimer", (data: number) => {
-		console.log(data);
 		const opponentClock = container.querySelector("#opponentStopWatch");
 		if (opponentClock) {
 			opponentClock.textContent = `${(data / 1000).toFixed(2)}s`;
+		}
+	});
+
+	//2.2 Hämta spelarnas poäng och uppdatera på sidan
+	socket.on("showScores", (player1Score: number, player2Score: number) => {
+		const scoreEl = container.querySelector(".scores");
+		if (scoreEl) {
+			scoreEl.textContent = `You: ${player1Score} | Opponent: ${player2Score}`;
 		}
 	});
 
@@ -93,6 +100,14 @@ export function createGamePage(
 		if (round > 10) {
 			socket.off("virusPositionsAndTime");
 			return;
+		}
+
+		//Nollställ timers när nytt virus visas
+		const opponentClock = container.querySelector("#opponentStopWatch");
+		const myClock = container.querySelector("#myStopWatch");
+		if (opponentClock && myClock) {
+			opponentClock.textContent = "0.00s";
+			myClock.textContent = "0.00s";
 		}
 
 		const virusShownAt = Date.now();
@@ -121,7 +136,6 @@ export function createGamePage(
 				socket.emit("virusClicked", reactionTime, currentGameRoomId);
 			}
 
-
 			virusElement.style.display = "none";
 		};
 	});
@@ -149,14 +163,14 @@ export function createGamePage(
 	};
 
 	// Lyssna på poänguppdateringar från backend
-	socket.on("showUpdatedGameStatus", (data) => {
+	/*socket.on("showUpdatedGameStatus", (data) => {
 		// Uppdatera "scores"
 		const scoreEl = container.querySelector(".scores");
 		if (scoreEl) {
 			// uppdaterad bådas poäng
 			console.log("Poäng uppdaterad:", data.score);
 		}
-	});
+	});*/
 
 	return container;
 }

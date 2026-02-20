@@ -11,6 +11,7 @@ export interface ServerToClientEvents {
     countDown: (number: number) => void;
     showUpdatedGameStatus: (data: UpdateGameStatus) => void;
     showOpponentTimer: (data: number) => void;
+    showScores: (player1Score: number, player2Score: number) => void;
     showResult: (data: GameResult) => void;
     playerRageQuit: (username: string, gameRoomId: string) => void;
     playersInRoom: (players: Player[]) => void;
