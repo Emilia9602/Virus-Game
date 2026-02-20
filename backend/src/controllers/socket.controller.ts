@@ -138,7 +138,7 @@ export const handleConnection = (
 			}
 
 			// Om det är spelrunda 10 -> Avbryt och skicka inget nytt virus
-			if (gameRoom.gameRound !== null && gameRoom.gameRound >= 10) {
+			if (gameRoom.gameRound !== null && gameRoom.gameRound >= 2) {
 				console.log("Game Over - runda 10 nådd");
 				return; // Här stannar vi!
 			}
