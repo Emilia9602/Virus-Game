@@ -160,6 +160,19 @@ export const handleConnection = (
 		}
 	});
 
+	//
+	socket.on("playAgainRequest", async () => {
+		debug("Player wants to play again: %s", socket.id);
+		const player = await getPlayerInRoom(socket.id);
+
+		if (player && player.gameRoomId) {
+			//Radera spelaren från gamla rummet
+			await deletePlayerInRoom(socket.id);
+			//Lämna rummet i socket.io
+			socket.leave(player.gameRoomId);
+		}
+	})
+
 	// Hantera disconnect
 	socket.on("disconnect", async () => {
 		debug("👋 A user disconnected with id: %s", socket.id);
@@ -182,3 +195,9 @@ export const handleConnection = (
 		}
 	});
 };
+<<<<<<< Updated upstream
+=======
+
+
+
+>>>>>>> Stashed changes

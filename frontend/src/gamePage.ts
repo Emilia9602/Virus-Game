@@ -8,8 +8,14 @@ import type { Player } from "../../backend/generated/prisma/client";
 export function createGamePage(
 	nickname: string,
 	socket: Socket<ServerToClientEvents, ClientToServerEvents>,
+<<<<<<< Updated upstream
 ): HTMLElement {
 	console.log("LOG 15: createGamePage() called for:", nickname);
+=======
+	goToWaitingRoom: () => void,
+): HTMLElement {
+    console.log("LOG 15: createGamePage() called for:", nickname);
+>>>>>>> Stashed changes
 
 	const container = document.createElement("section");
 	container.className = "game-page";
@@ -140,6 +146,7 @@ export function createGamePage(
 		};
 	});
 
+<<<<<<< Updated upstream
 	socket.on("stopTimer", (isCurrentPlayer) => {
 		if (isCurrentPlayer) {
 			stopTimer();
@@ -174,3 +181,16 @@ export function createGamePage(
 
 	return container;
 }
+=======
+    console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
+
+	const playAgainButton = document.createElement("button");
+	playAgainButton.textContent = "Play Again";
+	playAgainButton.className = "play-again-button";
+	playAgainButton.onclick = () => {
+		goToWaitingRoom();
+	};
+	return container;
+
+}
+>>>>>>> Stashed changes
