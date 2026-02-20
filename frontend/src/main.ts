@@ -28,7 +28,6 @@ function showGamePage(nickname: string) {
     const gamePage = createGamePage(
 		nickname,
 		socket,
-		() => showWaitingRoom(nickname), //Play again
 	);
     console.log("LOG 16: Appending gamePage to DOM");
     app.appendChild(gamePage);

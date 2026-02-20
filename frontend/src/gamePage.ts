@@ -16,9 +16,20 @@ export function createGamePage(
 	const container = document.createElement("section");
 	container.className = "game-page";
 
+	/**
+	 * CLEANUP
+	 * Rensar gamla lyssnare innan vi skapar nya.
+	 * Detta förhindrar att poäng räknas dubbelt eller att klockan buggar
+	 * om man spelar flera matcher i rad.
+	 */
+	socket.off("playersInRoom");
+	socket.off("showScores");
+	socket.off("stopTimer");
+	socket.off("playerRageQuit");
+
 	// variabler
 	let currentGameRoomId: string | null = null;
-	let timerStartedAt: number | null = null;
+	let timerStartedAt: number = Date.now();
 	let myTimer: number | null = null;
 	let opponentTimer: number | null = null;
 
@@ -81,7 +92,7 @@ export function createGamePage(
 
 	const playAgainButton = document.createElement("button");
 	playAgainButton.textContent = "Play Again";
-	playAgainButton.className = "play-again-button"
+	playAgainButton.className = "play-again-button";
 
 	buttonWrapper.appendChild(playAgainButton);
 	container.appendChild(buttonWrapper);
@@ -99,13 +110,13 @@ export function createGamePage(
 	gameOverWrapper.appendChild(gameOverText);
 	container.appendChild(gameOverWrapper);
 
-	//2.1 Hämta motspelarens reactionTime och skriv ut
+	/* 	//2.1 Hämta motspelarens reactionTime och skriv ut
 	socket.on("showOpponentTimer", (data: number) => {
 		const opponentClock = container.querySelector("#opponentStopWatch");
 		if (opponentClock) {
 			opponentClock.textContent = `${(data / 1000).toFixed(2)}s`;
 		}
-	});
+	}); */
 
 	//2.2 Hämta spelarnas poäng och uppdatera på sidan
 	socket.on("showScores", (player1Score: number, player2Score: number) => {
@@ -116,7 +127,7 @@ export function createGamePage(
 	});
 
 	//Om en spelare ragequitar, visa namn och play again knapp - - - Behövs roomId här?
-	socket.on("playerRageQuit", (username: string, gameRoomId: string) => {
+	socket.on("playerRageQuit", (username: string) => {
 		//Visar spela igen knapp
 		buttonWrapper.style.display = "block";
 		gameOverWrapper.style.display = "block";
@@ -135,8 +146,78 @@ export function createGamePage(
 
 	//---------------------------------------------------------//
 
-
 	// 3. Virus-logik
+
+	// Hjälpfunktioner för att hantera intervallerna
+
+	// start my timer
+	const startMyTimer = () => {
+		stopMyTimer();
+		if (myTimer === null) {
+			myTimer = setInterval(tick, 10);
+		}
+	};
+
+	// start opponent timer
+	const startOpponentTimer = () => {
+		stopOpponentTimer();
+		if (opponentTimer === null) {
+			opponentTimer = setInterval(tick, 10);
+		}
+	};
+
+	const stopMyTimer = () => {
+		if (myTimer !== null) {
+			clearInterval(myTimer);
+			myTimer = null;
+		}
+	};
+
+	const stopOpponentTimer = () => {
+		if (opponentTimer !== null) {
+			clearInterval(opponentTimer);
+			opponentTimer = null;
+		}
+	};
+
+	/**
+	 *REAL-TIME TICK LOGIC
+	 * tick() räknar ut tidsskillnaden mellan nuet och när viruset visades
+	 * Uppdaterar klockorna lokalt var 10:e millisekund
+	 */
+
+	const tick = () => {
+		const timeElapsed = Date.now() - timerStartedAt;
+
+		//As long as we haven't got a reactiontime from other user, display same stopwatch in both
+		const seconds = Math.floor(timeElapsed / 1000);
+		const milliseconds = timeElapsed % 1000;
+
+		// Format time to always show two digits for seconds and three for milliseconds
+		const latestTickTime =
+			"00:" +
+			String(seconds).padStart(2, "0") +
+			":" +
+			String(milliseconds).padStart(3, "0");
+
+		const myStopWatch = container.querySelector(
+			"#myStopWatch",
+		) as HTMLSpanElement;
+		const opponentStopWatch = container.querySelector(
+			"#opponentStopWatch",
+		) as HTMLSpanElement;
+
+		// If it is my timer, update it
+		if (myTimer !== null && myStopWatch) {
+			myStopWatch.innerText = latestTickTime;
+		}
+
+		// If it is the opponent's timer, update it
+		if (opponentTimer !== null && opponentStopWatch) {
+			opponentStopWatch.innerText = latestTickTime;
+		}
+	};
+
 	socket.off("virusPositionsAndTime");
 	let round = 0;
 
@@ -147,7 +228,6 @@ export function createGamePage(
 			return;
 		}
 
-
 		//Nollställ timers när nytt virus visas
 		const opponentClock = container.querySelector("#opponentStopWatch");
 		const myClock = container.querySelector("#myStopWatch");
@@ -156,7 +236,7 @@ export function createGamePage(
 			myClock.textContent = "0.00s";
 		}
 
-		const virusShownAt = Date.now();
+		//const virusShownAt = Date.now();
 		const virusElement = container.querySelector("#virus") as HTMLElement;
 		const cells = container.querySelectorAll(".grid-cell");
 
@@ -166,10 +246,25 @@ export function createGamePage(
 		if (cell && virusElement) {
 			cell.appendChild(virusElement);
 			virusElement.style.display = "flex";
+
+			/**
+             * SYNKAD START
+             * Båda timers startar exakt när viruset ritas ut på skärmen
+             */
+			timerStartedAt = Date.now();
+			startMyTimer();
+			startOpponentTimer();
 		}
 
 		virusElement.onclick = () => {
-			const reactionTime = Date.now() - virusShownAt;
+			/**
+             * PRECISION
+             * räknar ut reaktionstiden baserat på samma 'timerStartedAt' som klockan använder
+             */
+			const reactionTime = Date.now() - timerStartedAt;
+
+			// stop my timer
+			stopMyTimer();
 
 			// Uppdatera din egen klocka direkt i UI för omedelbar feedback
 			const myClock = container.querySelector("#myStopWatch");
@@ -188,28 +283,6 @@ export function createGamePage(
 
 	//---------koden som försvann som jag la in igen---------//
 
-	socket.on("stopTimer", (isCurrentPlayer) => {
-		if (isCurrentPlayer) {
-			stopTimer();
-		} else {
-			stopOpponentTimer();
-		}
-	});
-
-	const stopTimer = () => {
-		if (myTimer !== null) {
-			clearInterval(myTimer);
-			myTimer = null;
-		}
-	};
-
-	const stopOpponentTimer = () => {
-		if (opponentTimer !== null) {
-			clearInterval(opponentTimer);
-			opponentTimer = null;
-		}
-	};
-
 	// Lyssna på poänguppdateringar från backend
 	/*socket.on("showUpdatedGameStatus", (data) => {
 		// Uppdatera "scores"
@@ -220,7 +293,21 @@ export function createGamePage(
 		}
 	});*/
 
+	/**
+     * INDIVIDUELLT STOPP VIA SOCKET
+     * lyssnar på servern för att veta när motståndarens klocka ska frysa
+     * för att se motståndarens klocka ticka hos dig tills DE klickar.
+     */
+
+	socket.on("stopTimer", (isMe: boolean) => {
+		if (isMe) {
+			stopMyTimer();
+		} else {
+			// Detta fryser motståndarens klocka på DIN skärm när DE klickar
+			stopOpponentTimer();
+		}
+	});
+
 	return container;
 }
 console.log("LOG 15.1: Grid structure created with innerHTML and .gridSystem");
-
