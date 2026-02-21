@@ -40,7 +40,6 @@ export const handleConnection = (
 	debug("🙋 A user connected with id: %s", socket.id);
 
 	// Spelare ansluter till kö
-
 	socket.on("playerJoinRequest", async (username, callback) => {
 		// 1. Hitta ledigt rum eller skapa nytt
 
@@ -112,7 +111,6 @@ export const handleConnection = (
 	});
 
 	// Hantera virus-klick
-
 	socket.on("virusClicked", async (reactionTime: number, gameRoomId: string) => {
 		debug("Click received from %s. Time: %d ms", socket.id, reactionTime);
 
@@ -164,30 +162,30 @@ export const handleConnection = (
 					updatedPlayers[1].score,
 				);
 			}
-			// 2. VIKTIGT: Hämta de ABSOLUT senaste poängen från DB nu
+			// Hämta de ABSOLUT senaste poängen från DB nu
 			const playersInRoom = await getPlayersInRoom(gameRoomId);
 			const p1 = playersInRoom[0];
 			const p2 = playersInRoom[1];
 
-			// 3. Skicka showScores (enligt din interface: p1Score, p2Score)
-			// Tips: Se till att p1 och p2 skickas i samma ordning varje gång!
+			// Skicka showScores (enligt interface: p1Score, p2Score)
+			// Se till att p1 och p2 skickas i samma ordning varje gång!
 			io.to(gameRoomId).emit("showScores", p1.score, p2.score);
 
-			// 4. Uppdatera runda
+			// Uppdatera runda
 			await updateGameRoomRounds(gameRoomId);
 			const gameRoom = await getGameRoom(gameRoomId);
 
 			console.log(`[ROUND CHECK] DB säger att runda är: ${gameRoom?.gameRound}`);
 			console.log(`[DEBUG] Runda avklarad: ${gameRoom?.gameRound}/10`);
 
-			// 5. Kolla Game Over (Använd 10 istället för 2)
+			// Kolla Game Over (Använd 10 istället för 2)
 			if (gameRoom && gameRoom.gameRound !== null && gameRoom.gameRound >= 10) {
 				console.log("!!! GAME OVER TRIGGAT !!!");
 				io.to(gameRoomId).emit("currentGameResult", updatedPlayers[0], updatedPlayers[1]);
 				return; // Här dör spelet
 			}
 
-			// 6. Reset inför nästa runda
+			// Reset inför nästa runda
 			await resetPlayerTimer(gameRoomId);
 			setTimeout(() => {
 				const { virus, setTimeOutTimer } = getVirusPositionAndTime();
@@ -197,26 +195,21 @@ export const handleConnection = (
 	});
 
 	// Hantera disconnect
-
 	socket.on("disconnect", async () => {
 		debug("👋 A user disconnected with id: %s", socket.id);
 
 		//Hämta spelaren
-
 		const player = await getPlayerInRoom(socket.id);
 
 		//Kolla om spelaren finns
-
 		if (!player) {
 			return;
 		}
 
 		//Ta bort spelare med socket.id
-
 		await deletePlayerInRoom(socket.id);
 
 		// om en spelare disconnectar/ragequitta informera andra spelaren i rummet
-
 		if (player.gameRoomId) {
 			io.to(player.gameRoomId).emit("playerRageQuit", player.username, player.gameRoomId);
 		}

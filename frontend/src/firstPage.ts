@@ -95,7 +95,7 @@ export function createFirstPage(onStart: (nickname: string) => void): HTMLElemen
         instructionsWrapper,
         instructionsBox,
         input,
-        button, // In your original code 'button' was appended directly, but you also had 'buttonWrapper'. Keeping it as per your code.
+        button,
         statsWrapper
     );
 

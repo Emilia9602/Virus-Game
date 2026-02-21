@@ -52,7 +52,7 @@ export function createGamePage(
         </div>
     `;
 
-	// 1. Skapa 100 grid-celler
+	// Skapa 100 grid-celler
 	const gameArea = container.querySelector("#game-area") as HTMLElement;
 	if (gameArea) {
 		let cellsHTML = "";
@@ -62,7 +62,7 @@ export function createGamePage(
 		gameArea.innerHTML = cellsHTML;
 	}
 
-	// 2. Hantera spelarlista och spara Room ID
+	// Hantera spelarlista och spara Room ID
 	socket.on("playersInRoom", (players: Player[]) => {
 		const playerTimerEl = container.querySelector("#playerTimers");
 		if (playerTimerEl && players.length > 0) {
@@ -112,7 +112,7 @@ export function createGamePage(
 	gameOverWrapper.appendChild(gameOverText);
 	container.appendChild(gameOverWrapper);
 
-	//2.2 Hämta spelarnas poäng och uppdatera på sidan
+	//Hämta spelarnas poäng och uppdatera på sidan
 	// In gamePage.ts (Client)
 socket.on("showScores", (player1Score: number, player2Score: number) => {
     // Om player1 i listan är JAG, använd player1Score. Annars tvärtom.
@@ -134,7 +134,7 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 		gameOverText.textContent = `${username} ragequit, push button play again`;
 	});
 
-	// 3. Virus-logik - Hjälpfunktioner för att hantera intervallerna
+	// Virus-logik - Hjälpfunktioner för att hantera intervallerna
 	const startMyTimer = () => {
 		stopMyTimer();
 		if (myTimer === null) {
@@ -235,7 +235,7 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 			 */
 			const reactionTime = Date.now() - timerStartedAt;
 
-			// stop my timer
+			// stoppa my timer
 			stopMyTimer();
 
 			// Uppdatera din egen klocka direkt i UI för omedelbar feedback
@@ -260,9 +260,7 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
     const cell = cells[cellIndex] as HTMLElement;
 
     if (cell && virusElement) {
-        /**
-         * NOLLSTÄLLNING VID NY RUNDA
-         */
+        // Nollställning
         const opponentClock = container.querySelector("#opponentStopWatch");
         const myClock = container.querySelector("#myStopWatch");
         if (opponentClock && myClock) {
@@ -274,9 +272,7 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
         cell.appendChild(virusElement);
         virusElement.style.display = "flex";
 
-        /**
-         * SYNKAD START
-         */
+        // Synkad start
         timerStartedAt = Date.now();
         startMyTimer();
         startOpponentTimer();
@@ -304,7 +300,7 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 });
 
 	/**
-	 * INDIVIDUELLT STOPP VIA SOCKET
+	 * Idividuellt stopp via socket
 	 * lyssnar på servern för att veta när motståndarens klocka ska frysa
 	 * för att se motståndarens klocka ticka hos dig tills DE klickar.
 	 */
