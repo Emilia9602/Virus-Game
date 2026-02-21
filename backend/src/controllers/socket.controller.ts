@@ -156,20 +156,22 @@ export const handleConnection = (
 
 				// 3. Skicka de uppdaterade poängen till frontend
 				// Vi använder värdena direkt från 'updatedPlayers' (DB) istället för de gamla objekten
+				const p1 = updatedPlayers[0];
+				const p2 = updatedPlayers[1];
 				io.to(gameRoomId).emit(
 					"showScores",
-					updatedPlayers[0].score,
-					updatedPlayers[1].score,
+					p1.score,
+					p2.score,
 				);
 			}
 			// Hämta de ABSOLUT senaste poängen från DB nu
-			const playersInRoom = await getPlayersInRoom(gameRoomId);
-			const p1 = playersInRoom[0];
-			const p2 = playersInRoom[1];
+			//const playersInRoom = await getPlayersInRoom(gameRoomId);
+			//const p1 = playersInRoom[0];
+			//const p2 = playersInRoom[1];
 
 			// Skicka showScores (enligt interface: p1Score, p2Score)
 			// Se till att p1 och p2 skickas i samma ordning varje gång!
-			io.to(gameRoomId).emit("showScores", p1.score, p2.score);
+			//io.to(gameRoomId).emit("showScores", p1.score, p2.score);
 
 			// Uppdatera runda
 			await updateGameRoomRounds(gameRoomId);

@@ -127,7 +127,7 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
     }
 });
 
-	//Om en spelare ragequitar, visa namn och play again knapp - - - Behövs roomId här?
+	//Om en spelare ragequitar, visa namn och play again knapp
 	socket.on("playerRageQuit", (username: string) => {
 		//Visar spela igen knapp
 		buttonWrapper.style.display = "block";
