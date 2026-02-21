@@ -1,6 +1,10 @@
 import type { Player } from "../../backend/generated/prisma/client.ts";
 
-export function createWinnerPage(player1: Player, player2: Player): HTMLElement {
+export function createWinnerPage(player1: Player,
+	player2: Player,
+	goToWaitingRoom: () => void, //Funktion för yes
+	goToFirstPage: () => void  //Funktion för No
+): HTMLElement {
     const container = document.createElement("section");
     container.className = "winner-page";
 
@@ -24,14 +28,23 @@ export function createWinnerPage(player1: Player, player2: Player): HTMLElement 
                 <p>${player2.username}: <strong>${player2.score}</strong></p>
             </div>
 
-            <button id="playAgain" class="btn-play-again">Play Again</button>
+            <div class="choice-box">
+			<p>Play Again?</p>
+			<button id="btnYes" class="btn-yes">Yes</button>
+			<button id="btnNo" class="btn-no">No</button>
         </div>
+		</div>
     `;
 
-    // Knapp för att starta om (ladda om sidan är det enklaste sättet att nollställa socket-state)
-    container.querySelector("#playAgain")?.addEventListener("click", () => {
-        window.location.reload();
+    // Yes, Knapp för att starta om (ladda om sidan är det enklaste sättet att nollställa socket-state)
+    container.querySelector("#btnYes")?.addEventListener("click", () => {
+        goToWaitingRoom();
     });
+
+	//No, skicka till första sidan
+	container.querySelector("#btnNo")?.addEventListener("click", () => {
+		goToFirstPage();
+	});
 
     return container;
 }

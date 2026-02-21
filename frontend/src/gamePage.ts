@@ -9,8 +9,8 @@ import { createWinnerPage } from "./winnerPage";
 export function createGamePage(
 	nickname: string,
 	socket: Socket<ServerToClientEvents, ClientToServerEvents>,
-	//------callback-funktion som byter vy och skickar tillbaka spelaren till lobbyn---------//
-	// goToWaitingRoom: () => void,
+	goToWaitingRoom: () => void,
+	goToFirstPage: () => void,
 ): HTMLElement {
 	console.log("LOG 15: createGamePage() called for:", nickname);
 
@@ -88,17 +88,17 @@ export function createGamePage(
 		}
 	});
 
-	//Skapar upp knapp för att spela igen men döljer den
-	const buttonWrapper = document.createElement("div");
-	buttonWrapper.style.display = "none"; //Dölj knappen tills runda 10 är klar eller motspelare ragequitar
-	buttonWrapper.style.textAlign = "center";
+	//Skapar upp knapp för att spela igen men döljer den (kommenterade bort eftersom ändrade play again knappen)
+	// const buttonWrapper = document.createElement("div");
+	// buttonWrapper.style.display = "none"; //Dölj knappen tills runda 10 är klar eller motspelare ragequitar
+	// buttonWrapper.style.textAlign = "center";
 
-	const playAgainButton = document.createElement("button");
-	playAgainButton.textContent = "Play Again";
-	playAgainButton.className = "play-again-button";
+	// const playAgainButton = document.createElement("button");
+	// playAgainButton.textContent = "Play Again";
+	// playAgainButton.className = "play-again-button";
 
-	buttonWrapper.appendChild(playAgainButton);
-	container.appendChild(buttonWrapper);
+	// buttonWrapper.appendChild(playAgainButton);
+	// container.appendChild(buttonWrapper);
 
 	//Skapar upp text om någon ragequitar men döljer den
 	const gameOverWrapper = document.createElement("div");
@@ -129,8 +129,10 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 
 	//Om en spelare ragequitar, visa namn och play again knapp
 	socket.on("playerRageQuit", (username: string) => {
-		//Visar spela igen knapp
-		buttonWrapper.style.display = "block";
+		alert (`${username} lämnade spelet!`);
+		window.location.reload();
+		//Visar spela igen knapp (kommenterade bort då jag ändrade play again knappe)
+		// buttonWrapper.style.display = "block";
 		gameOverWrapper.style.display = "block";
 		gameOverText.textContent = `${username} ragequit, push button play again`;
 	});
@@ -319,7 +321,7 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 socket.on("currentGameResult", (player1, player2) => {
     console.log("Spelet är slut, visar vinnarsidan");
 
-    const winnerPage = createWinnerPage(player1, player2);
+    const winnerPage = createWinnerPage(player1, player2, goToWaitingRoom, goToFirstPage);
     const appContainer = document.querySelector("#app") || document.body;
     appContainer.innerHTML = "";
 

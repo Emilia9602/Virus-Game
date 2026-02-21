@@ -63,6 +63,8 @@ function showGamePage(nickname: string) {
     const gamePage = createGamePage(
 		nickname,
 		socket,
+		() => showWaitingRoom(nickname), //skickar med funktionen för YES
+		showFirstPage //Skickar med funktionen för NO
 	);
     console.log("LOG 16: Appending gamePage to DOM");
     app.appendChild(gamePage);
