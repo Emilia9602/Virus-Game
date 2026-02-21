@@ -34,6 +34,7 @@ export function createGamePage(
 	let timerStartedAt: number = Date.now();
 	let myTimer: number | null = null;
 	let opponentTimer: number | null = null;
+	let round = 0;
 
 	container.innerHTML = `
         <div class="game-ui">
@@ -189,7 +190,6 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 		}
 	};
 
-	let round = 0;
 	socket.on("virusPositionsAndTime", (virus) => {
 		round++;
 		if (round > 10) {
@@ -251,53 +251,54 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 
 			virusElement.style.display = "none";
 		};
-	});socket.on("virusPositionsAndTime", (virus) => {
-    console.log("[CLIENT] Nytt virus mottaget från servern");
+	});
+	// });socket.on("virusPositionsAndTime", (virus) => {
+    // console.log("[CLIENT] Nytt virus mottaget från servern");
 
-    const virusElement = container.querySelector("#virus") as HTMLElement;
-    const cells = container.querySelectorAll(".grid-cell");
-    const cellIndex = virus.positionY * 10 + virus.positionX;
-    const cell = cells[cellIndex] as HTMLElement;
+//     const virusElement = container.querySelector("#virus") as HTMLElement;
+//     const cells = container.querySelectorAll(".grid-cell");
+//     const cellIndex = virus.positionY * 10 + virus.positionX;
+//     const cell = cells[cellIndex] as HTMLElement;
 
-    if (cell && virusElement) {
-        // Nollställning
-        const opponentClock = container.querySelector("#opponentStopWatch");
-        const myClock = container.querySelector("#myStopWatch");
-        if (opponentClock && myClock) {
-            opponentClock.textContent = "0.00s";
-            myClock.textContent = "0.00s";
-        }
+//     if (cell && virusElement) {
+//         // Nollställning
+//         const opponentClock = container.querySelector("#opponentStopWatch");
+//         const myClock = container.querySelector("#myStopWatch");
+//         if (opponentClock && myClock) {
+//             opponentClock.textContent = "0.00s";
+//             myClock.textContent = "0.00s";
+//         }
 
-        // Placera virus och visa det
-        cell.appendChild(virusElement);
-        virusElement.style.display = "flex";
+//         // Placera virus och visa det
+//         cell.appendChild(virusElement);
+//         virusElement.style.display = "flex";
 
-        // Synkad start
-        timerStartedAt = Date.now();
-        startMyTimer();
-        startOpponentTimer();
-    }
+//         // Synkad start
+//         timerStartedAt = Date.now();
+//         startMyTimer();
+//         startOpponentTimer();
+//     }
 
-    virusElement.onclick = () => {
-        const reactionTime = Date.now() - timerStartedAt;
+//     virusElement.onclick = () => {
+//         const reactionTime = Date.now() - timerStartedAt;
 
-        // Stoppa min timer lokalt direkt
-        stopMyTimer();
+//         // Stoppa min timer lokalt direkt
+//         stopMyTimer();
 
-        // Uppdatera klockan visuellt direkt
-        const myClock = container.querySelector("#myStopWatch");
-        if (myClock) {
-            myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
-        }
+//         // Uppdatera klockan visuellt direkt
+//         const myClock = container.querySelector("#myStopWatch");
+//         if (myClock) {
+//             myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
+//         }
 
-        // Skicka till backend
-        if (currentGameRoomId) {
-            socket.emit("virusClicked", reactionTime, currentGameRoomId);
-        }
+//         // Skicka till backend
+//         if (currentGameRoomId) {
+//             socket.emit("virusClicked", reactionTime, currentGameRoomId);
+//         }
 
-        virusElement.style.display = "none";
-    };
-});
+//         virusElement.style.display = "none";
+//     };
+// });
 
 	/**
 	 * Idividuellt stopp via socket
