@@ -28,6 +28,7 @@ export function createGamePage(
 	socket.off("stopTimer");
 	socket.off("playerRageQuit");
 	socket.off("virusPositionsAndTime");
+	socket.off("currentGameResult");
 
 	// variabler
 	let currentGameRoomId: string | null = null;
@@ -88,22 +89,10 @@ export function createGamePage(
 		}
 	});
 
-	//Skapar upp knapp för att spela igen men döljer den (kommenterade bort eftersom ändrade play again knappen)
-	// const buttonWrapper = document.createElement("div");
-	// buttonWrapper.style.display = "none"; //Dölj knappen tills runda 10 är klar eller motspelare ragequitar
-	// buttonWrapper.style.textAlign = "center";
-
-	// const playAgainButton = document.createElement("button");
-	// playAgainButton.textContent = "Play Again";
-	// playAgainButton.className = "play-again-button";
-
-	// buttonWrapper.appendChild(playAgainButton);
-	// container.appendChild(buttonWrapper);
-
 	//Skapar upp text om någon ragequitar men döljer den
 	const gameOverWrapper = document.createElement("div");
 	gameOverWrapper.className = "gameOverWrapper";
-	gameOverWrapper.style.display = "none"; //Dölj rutan tills runda 10 är klar eller motspelare ragequitar
+	gameOverWrapper.style.display = "none";
 	gameOverWrapper.style.textAlign = "center";
 
 	const gameOverText = document.createElement("p");
@@ -114,25 +103,19 @@ export function createGamePage(
 	container.appendChild(gameOverWrapper);
 
 	//Hämta spelarnas poäng och uppdatera på sidan
-	// In gamePage.ts (Client)
-socket.on("showScores", (player1Score: number, player2Score: number) => {
-    // Om player1 i listan är JAG, använd player1Score. Annars tvärtom.
-    // Men det enklaste för debug är:
-    console.log(`[SCORE DEBUG] Mottagna poäng: P1: ${player1Score}, P2: ${player2Score}`);
+	socket.on("showScores", (player1Score: number, player2Score: number) => {
+		console.log(`[SCORE DEBUG] Mottagna poäng: P1: ${player1Score}, P2: ${player2Score}`);
 
-    const scoreEl = container.querySelector(".scores");
-    if (scoreEl) {
-        // Just nu visar du bara värdena rakt av
-        scoreEl.textContent = `Player 1: ${player1Score} | Player 2: ${player2Score}`;
-    }
-});
+		const scoreEl = container.querySelector(".scores");
+		if (scoreEl) {
+			scoreEl.textContent = `Player 1: ${player1Score} | Player 2: ${player2Score}`;
+		}
+	});
 
 	//Om en spelare ragequitar, visa namn och play again knapp
 	socket.on("playerRageQuit", (username: string) => {
-		alert (`${username} lämnade spelet!`);
+		alert(`${username} lämnade spelet!`);
 		window.location.reload();
-		//Visar spela igen knapp (kommenterade bort då jag ändrade play again knappe)
-		// buttonWrapper.style.display = "block";
 		gameOverWrapper.style.display = "block";
 		gameOverText.textContent = `${username} ragequit, push button play again`;
 	});
@@ -173,16 +156,10 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 	 */
 	const tick = () => {
 		const timeElapsed = Date.now() - timerStartedAt;
-
-		// Här räknas  sekunder med två decimaler direkt (t.ex. "1.20s")
 		const latestTickTime = (timeElapsed / 1000).toFixed(2) + "s";
 
-		const myStopWatch = container.querySelector(
-			"#myStopWatch",
-		) as HTMLSpanElement;
-		const opponentStopWatch = container.querySelector(
-			"#opponentStopWatch",
-		) as HTMLSpanElement;
+		const myStopWatch = container.querySelector("#myStopWatch") as HTMLSpanElement;
+		const opponentStopWatch = container.querySelector("#opponentStopWatch") as HTMLSpanElement;
 
 		if (myTimer !== null && myStopWatch) {
 			myStopWatch.innerText = latestTickTime;
@@ -192,115 +169,78 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 		}
 	};
 
+	const virusElement = container.querySelector("#virus") as HTMLElement;
+
+	/**
+	 * Virus-klick registreras EN gång via addEventListener istället för
+	 * att tilldela onclick varje runda. Detta undviker inaktuella closures
+	 * och säkerställer att bara ETT klick-event finns registrerat.
+	 */
+	const handleVirusClick = () => {
+		if (virusElement.style.display === "none") return;
+
+		const reactionTime = Date.now() - timerStartedAt;
+
+		stopMyTimer();
+
+		const myClock = container.querySelector("#myStopWatch");
+		if (myClock) {
+			myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
+		}
+
+		if (currentGameRoomId) {
+			socket.emit("virusClicked", reactionTime, currentGameRoomId);
+		}
+
+		virusElement.style.display = "none";
+	};
+
+	virusElement.addEventListener("click", handleVirusClick);
+
 	socket.on("virusPositionsAndTime", (virus) => {
 		round++;
+		console.log(`[VIRUS] Runda ${round} mottagen`);
+
 		if (round > 10) {
 			socket.off("virusPositionsAndTime");
+			stopMyTimer();
+			stopOpponentTimer();
 			return;
 		}
 
-		const virusElement = container.querySelector("#virus") as HTMLElement;
 		const cells = container.querySelectorAll(".grid-cell");
 		const cellIndex = virus.positionY * 10 + virus.positionX;
 		const cell = cells[cellIndex] as HTMLElement;
 
-		if (cell && virusElement) {
-			/**
-			 * NOLLSTÄLLNING VID NY RUNDA
-			 * Vi nollställer klockorna visuellt först NU när nästa runda faktiskt startar.
-			 * Detta gör att spelarna hinner se tiderna från förra rundan under pausen.
-			 */
-			const opponentClock = container.querySelector("#opponentStopWatch");
-			const myClock = container.querySelector("#myStopWatch");
-			if (opponentClock && myClock) {
-				opponentClock.textContent = "0.00s";
-				myClock.textContent = "0.00s";
-			}
-
-			// placera virus o visa det
-			cell.appendChild(virusElement);
-			virusElement.style.display = "flex";
-
-			/**
-			 * SYNKAD START
-			 * Båda timers startar exakt när viruset ritas ut på skärmen
-			 */
-			timerStartedAt = Date.now();
-			startMyTimer();
-			startOpponentTimer();
+		if (!cell || !virusElement) {
+			console.warn(`[VIRUS] Ogiltigt cell-index: ${cellIndex}`);
+			return;
 		}
 
-		virusElement.onclick = () => {
-			/**
-			 * PRECISION
-			 * räknar ut reaktionstiden baserat på samma 'timerStartedAt' som klockan använder
-			 */
-			const reactionTime = Date.now() - timerStartedAt;
+		/**
+		 * NOLLSTÄLLNING VID NY RUNDA
+		 * Vi nollställer klockorna visuellt först NU när nästa runda faktiskt startar.
+		 * Detta gör att spelarna hinner se tiderna från förra rundan under pausen.
+		 */
+		const opponentClock = container.querySelector("#opponentStopWatch");
+		const myClock = container.querySelector("#myStopWatch");
+		if (opponentClock && myClock) {
+			opponentClock.textContent = "0.00s";
+			myClock.textContent = "0.00s";
+		}
 
-			// stoppa my timer
-			stopMyTimer();
+		// Placera virus och visa det
+		cell.appendChild(virusElement);
+		virusElement.style.display = "flex";
 
-			// Uppdatera din egen klocka direkt i UI för omedelbar feedback
-			const myClock = container.querySelector("#myStopWatch");
-			if (myClock) {
-				myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
-			}
-
-			// Skicka till backend (nu med rummet vi sparade!)
-			if (currentGameRoomId) {
-				socket.emit("virusClicked", reactionTime, currentGameRoomId);
-			}
-
-			virusElement.style.display = "none";
-		};
+		/**
+		 * SYNKAD START
+		 * Båda timers startar exakt när viruset ritas ut på skärmen
+		 */
+		timerStartedAt = Date.now();
+		startMyTimer();
+		startOpponentTimer();
 	});
-	// });socket.on("virusPositionsAndTime", (virus) => {
-    // console.log("[CLIENT] Nytt virus mottaget från servern");
-
-//     const virusElement = container.querySelector("#virus") as HTMLElement;
-//     const cells = container.querySelectorAll(".grid-cell");
-//     const cellIndex = virus.positionY * 10 + virus.positionX;
-//     const cell = cells[cellIndex] as HTMLElement;
-
-//     if (cell && virusElement) {
-//         // Nollställning
-//         const opponentClock = container.querySelector("#opponentStopWatch");
-//         const myClock = container.querySelector("#myStopWatch");
-//         if (opponentClock && myClock) {
-//             opponentClock.textContent = "0.00s";
-//             myClock.textContent = "0.00s";
-//         }
-
-//         // Placera virus och visa det
-//         cell.appendChild(virusElement);
-//         virusElement.style.display = "flex";
-
-//         // Synkad start
-//         timerStartedAt = Date.now();
-//         startMyTimer();
-//         startOpponentTimer();
-//     }
-
-//     virusElement.onclick = () => {
-//         const reactionTime = Date.now() - timerStartedAt;
-
-//         // Stoppa min timer lokalt direkt
-//         stopMyTimer();
-
-//         // Uppdatera klockan visuellt direkt
-//         const myClock = container.querySelector("#myStopWatch");
-//         if (myClock) {
-//             myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
-//         }
-
-//         // Skicka till backend
-//         if (currentGameRoomId) {
-//             socket.emit("virusClicked", reactionTime, currentGameRoomId);
-//         }
-
-//         virusElement.style.display = "none";
-//     };
-// });
 
 	/**
 	 * Idividuellt stopp via socket
@@ -317,17 +257,25 @@ socket.on("showScores", (player1Score: number, player2Score: number) => {
 	});
 
 	// connect gamePage with winnerPage
+	socket.on("currentGameResult", (player1, player2) => {
+		console.log("Spelet är slut, visar vinnarsidan");
 
-socket.on("currentGameResult", (player1, player2) => {
-    console.log("Spelet är slut, visar vinnarsidan");
+		// Städa upp timers och lyssnare
+		stopMyTimer();
+		stopOpponentTimer();
+		socket.off("playersInRoom");
+		socket.off("showScores");
+		socket.off("stopTimer");
+		socket.off("playerRageQuit");
+		socket.off("virusPositionsAndTime");
+		socket.off("currentGameResult");
+		virusElement.removeEventListener("click", handleVirusClick);
 
-    const winnerPage = createWinnerPage(player1, player2, goToWaitingRoom, goToFirstPage);
-    const appContainer = document.querySelector("#app") || document.body;
-    appContainer.innerHTML = "";
-
-    appContainer.appendChild(winnerPage);
-});
+		const winnerPage = createWinnerPage(player1, player2, goToWaitingRoom, goToFirstPage);
+		const appContainer = document.querySelector("#app") || document.body;
+		appContainer.innerHTML = "";
+		appContainer.appendChild(winnerPage);
+	});
 
 	return container;
 }
-
