@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mongodb": "^7.1.0"
+    "mongodb": "^7.1.0",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/node": "^25.2.2",
