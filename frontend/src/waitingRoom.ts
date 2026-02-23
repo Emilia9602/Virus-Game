@@ -26,34 +26,24 @@ export function createWaitingRoom(
 	waitingText.appendChild(dotsSpan);
 	wrapper.appendChild(waitingText);
 
-	// JS animation för punkterna
+	// JS-animation för punkterna
 	let dots = 0;
 	const dotsInterval = setInterval(() => {
 		dots = (dots + 1) % 4;
 		dotsSpan.textContent = ".".repeat(dots);
 	}, 500);
 
-	// En ny div för att visa den stora nedräkningen (3, 2, 1)
-	const countdownDisplay = document.createElement("div");
-	countdownDisplay.className = "countdown-number";
-	countdownDisplay.style.fontSize = "4rem";
-	countdownDisplay.style.fontWeight = "bold";
-	wrapper.appendChild(countdownDisplay);
-
-	/**
-	 * GUARD: Säkerställer att goToGamePage() bara anropas EN gång,
-	 * oavsett om startGame och countDown(0) båda triggas nära inpå varandra.
-	 */
+	//goToGamePage anropas bara en gång
 	let hasNavigated = false;
 
+
+	//Stoppar punktanimationen och tar bort socket lyssnare innan vi byter sida
 	const navigateToGame = () => {
 		if (hasNavigated) return;
 		hasNavigated = true;
-
 		clearInterval(dotsInterval);
 		socket.off("startGame");
 		socket.off("countDown");
-
 		console.log("LOG 11.1: Navigating to game page");
 		goToGamePage();
 	};
@@ -64,27 +54,15 @@ export function createWaitingRoom(
 		console.log("LOG 9.1: Join response from server:", response);
 	});
 
-	/**
-	 * När backend säger att 2 spelare är redo navigerar vi DIREKT.
-	 * Servern börjar skicka virusPositionsAndTime direkt efter startGame,
-	 * så vi får inte vänta annars missar vi de första viruseventen.
-	 */
+	//nedräkning visas på spelsidan så virus lyssnare är redo
 	socket.on("startGame", () => {
 		console.log("LOG 11: startGame event received – navigating immediately");
-		waitingText.textContent = "Game starts in...";
-		dotsSpan.textContent = "";
 		navigateToGame();
 	});
 
-	// Lyssna på siffrorna (3, 2, 1, 0) – guard stoppar dubbelnavigering
+	// Absorbera countDown-events från servern utan att agera på dem
 	socket.on("countDown", (num) => {
-		console.log("LOG 12.1: countDown event received, value:", num);
-		countdownDisplay.textContent = num.toString();
-
-		if (num === 0) {
-			console.log("LOG 12.2: Countdown reached 0 – navigating");
-			navigateToGame();
-		}
+		console.log("LOG 12.1: countDown mottagen (ignoreras):", num);
 	});
 
 	// Visa nickname
