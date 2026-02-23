@@ -1,14 +1,14 @@
 import type { Virus } from "@shared/types/SocketEvents.types.ts";
 
 export const getVirusPositionAndTime = () => {
-	// Send to frontend random position x/y (0–9, matching the 10x10 grid indices)
+	//Slumpar en position mellan 0 och 9 för x och y
 	const positionX = Math.floor(Math.random() * 10);
 	const positionY = Math.floor(Math.random() * 10);
 
-	//Random Time - 1,5-10 sekunder
+	//Slumpar väntetid mellan 1,5 och 10sek
 	const setTimeOutTimer = Math.random() * (10 - 1.5) + 1.5;
 
-	//Construct payload
+	//bygger ihop viruset och skickar tillbaka det
 	const virus: Virus = {
 		positionX,
 		positionY,

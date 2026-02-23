@@ -1,281 +1,206 @@
 import type { Socket } from "socket.io-client";
 import type {
-	ClientToServerEvents,
-	ServerToClientEvents,
+    ClientToServerEvents,
+    ServerToClientEvents,
 } from "@shared/types/SocketEvents.types.ts";
 import type { Player } from "../../backend/generated/prisma/client";
 import { createWinnerPage } from "./winnerPage";
 
 export function createGamePage(
-	nickname: string,
-	socket: Socket<ServerToClientEvents, ClientToServerEvents>,
-	goToWaitingRoom: () => void,
-	goToFirstPage: () => void,
+    nickname: string,
+    socket: Socket<ServerToClientEvents, ClientToServerEvents>,
+    goToWaitingRoom: () => void,
+    goToFirstPage: () => void,
 ): HTMLElement {
-	console.log("LOG 15: createGamePage() called for:", nickname);
+    console.log("LOG 15: createGamePage() called for:", nickname);
 
-	const container = document.createElement("section");
-	container.className = "game-page";
+    const container = document.createElement("section");
+    container.className = "game-page";
 
-	/**
-	 * CLEANUP
-	 * Rensar gamla lyssnare innan vi skapar nya.
-	 * Detta förhindrar att poäng räknas dubbelt eller att klockan buggar
-	 * om man spelar flera matcher i rad.
-	 */
-	socket.off("playersInRoom");
-	socket.off("showScores");
-	socket.off("stopTimer");
-	socket.off("playerRageQuit");
-	socket.off("virusPositionsAndTime");
-	socket.off("currentGameResult");
+    //Rensar gamla socket-lyssnare
+    socket.off("playersInRoom");
+    socket.off("showScores");
+    socket.off("stopTimer");
+    socket.off("playerRageQuit");
+    socket.off("virusPositionsAndTime");
+    socket.off("currentGameResult");
 
-	// variabler
-	let currentGameRoomId: string | null = null;
-	let timerStartedAt: number = Date.now();
-	let myTimer: number | null = null;
-	let opponentTimer: number | null = null;
-	let round = 0;
+    let currentGameRoomId: string | null = null;
+    let timerStartedAt: number = Date.now();
+    let myTimer: number | null = null;
+    let opponentTimer: number | null = null;
+    let round = 0;
+	let myName: string = "";
+	let opponentName: string = "";
+	let iAmP1: boolean = false;
 
-	container.innerHTML = `
+    container.innerHTML = `
         <div class="game-ui">
-            <h2>Welcome, ${nickname}!</h2>
+            <h2>Welcome! ${nickname}!</h2>
             <div class="game-status">Waiting for virus...</div>
-            <div id="playerTimers" class="timer-container" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;">
-                </div>
-            <div class="scores">You: 0 | Opponent: 0</div>
+            <div id="playerTimers" class="timer-container" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;"></div>
+            <div class="scores"></div>
         </div>
 
         <div class="game-board-wrapper" style="width: 600px; height: 600px; margin: 0 auto; border: 5px solid #333; position: relative;">
             <div id="game-area" class="gridSystem"></div>
-            <div id="virus" class="virus-target" style="display: none; cursor: pointer; font-size: 2rem; position: absolute; z-index: 10;">
-                🦠
+            <div id="virus" class="virus-target" style="display: none; cursor: pointer; font-size: 2rem; position: absolute; z-index: 10;">🦠</div>
+
+            <div id="countdown-overlay" style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; z-index: 100; border-radius: 4px;">
+                <span id="countdown-number" style="font-size: 8rem; font-weight: bold; color: #fff; font-family: monospace; text-shadow: 0 0 30px rgba(255,255,255,0.6);">3</span>
             </div>
         </div>
     `;
 
-	// Skapa 100 grid-celler
-	const gameArea = container.querySelector("#game-area") as HTMLElement;
-	if (gameArea) {
-		let cellsHTML = "";
-		for (let i = 0; i < 100; i++) {
-			cellsHTML += '<div class="grid-cell"></div>';
-		}
-		gameArea.innerHTML = cellsHTML;
-	}
+    // Skapa grid
+    const gameArea = container.querySelector("#game-area") as HTMLElement;
+    if (gameArea) {
+        let cellsHTML = "";
+        for (let i = 0; i < 100; i++) { cellsHTML += '<div class="grid-cell"></div>'; }
+        gameArea.innerHTML = cellsHTML;
+    }
 
-	// Hantera spelarlista och spara Room ID
-	socket.on("playersInRoom", (players: Player[]) => {
-		const playerTimerEl = container.querySelector("#playerTimers");
-		if (playerTimerEl && players.length > 0) {
-			// Spara rummets ID från första bästa spelare
-			currentGameRoomId = players[0].gameRoomId;
+    // Nedräknings-logik
+    let gameReady = false;
+    let pendingVirus: (() => void) | null = null;
+    const overlay = container.querySelector("#countdown-overlay") as HTMLElement;
+    const countdownNumber = container.querySelector("#countdown-number") as HTMLElement;
+    const steps = ["3", "2", "1", "GO!"];
+    let stepIndex = 0;
 
-			playerTimerEl.innerHTML = players
-				.map((player) => {
-					const isMe = player.id === socket.id;
-					const label = isMe
-						? `${player.username} (Du)`
-						: player.username;
-					const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
+    const runCountdown = () => {
+        countdownNumber.textContent = steps[stepIndex];
+        // Liten pop-animation på varje steg
+        countdownNumber.style.transform = "scale(1.3)";
+        countdownNumber.style.opacity = "1";
+        setTimeout(() => {
+            countdownNumber.style.transform = "scale(1)";
+            countdownNumber.style.opacity = "0.7";
+        }, 150);
+        stepIndex++;
+        if (stepIndex < steps.length) {
+            setTimeout(runCountdown, 1000);
+        } else {
+            // Nedräkning klar, dölj overlay och starta spelet
+            setTimeout(() => {
+                overlay.style.display = "none";
+                gameReady = true;
+                if (pendingVirus) { pendingVirus(); pendingVirus = null; }
+            }, 600);
+        }
+    };
+    setTimeout(runCountdown, 200);
 
-					return `
-                        <div class="player-box">
-                            <span>${label}</span>
-                            <span id="${timerId}" style="font-family: monospace; font-weight: bold;">0.00s</span>
-                        </div>`;
-				})
-				.join("");
-		}
-	});
+    // Socket lyssnare
+    socket.on("playersInRoom", (players: Player[]) => {
+        const playerTimerEl = container.querySelector("#playerTimers");
+        if (playerTimerEl && players.length > 0) {
+            // Sparar rumId så virusklick kan skickas till rätt rum
+            currentGameRoomId = players[0].gameRoomId;
+            playerTimerEl.innerHTML = players.map((player, index) => {
+                const isMe = player.id === socket.id;
+				if (isMe) { myName = player.username;
+				iAmP1 = index === 0;
+			} else opponentName = player.username;
+                const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
+                return `<div class="player-box"><span>${isMe ? player.username + " (Du)" : player.username}</span><span id="${timerId}" style="font-family: monospace; font-weight: bold;">0.00s</span></div>`;
+            }).join("");
 
-	//Skapar upp text om någon ragequitar men döljer den
-	const gameOverWrapper = document.createElement("div");
-	gameOverWrapper.className = "gameOverWrapper";
-	gameOverWrapper.style.display = "none";
-	gameOverWrapper.style.textAlign = "center";
+			const scoreEl = container.querySelector(".scores");
+			if (scoreEl) scoreEl.textContent = `${myName}: 0 | ${opponentName}: 0`;
 
-	const gameOverText = document.createElement("p");
-	gameOverText.textContent = "Username ragequit, push button play again";
-	gameOverText.className = "game-over-text";
+        }
+    });
 
-	gameOverWrapper.appendChild(gameOverText);
-	container.appendChild(gameOverWrapper);
+    socket.on("showScores", (p1, p2) => {
+        const scoreEl = container.querySelector(".scores");
+		const myScore = iAmP1 ? p1 : p2;
+		const opponentScore = iAmP1 ? p2 : p1;
+        if (scoreEl) scoreEl.textContent = `${myName}: ${myScore} | ${opponentName}: ${opponentScore}`;
+    });
 
-	//Hämta spelarnas poäng och uppdatera på sidan
-	socket.on("showScores", (player1Score: number, player2Score: number) => {
-		console.log(`[SCORE DEBUG] Mottagna poäng: P1: ${player1Score}, P2: ${player2Score}`);
+    socket.on("playerRageQuit", (username) => {
+        alert(`${username} lämnade spelet!`);
+        window.location.reload();
+    });
 
-		const scoreEl = container.querySelector(".scores");
-		if (scoreEl) {
-			scoreEl.textContent = `Player 1: ${player1Score} | Player 2: ${player2Score}`;
-		}
-	});
+    // Timer funktioner
+    const tick = () => {
+        const timeElapsed = Date.now() - timerStartedAt;
+        const latestTickTime = (timeElapsed / 1000).toFixed(2) + "s";
+        const myClock = container.querySelector("#myStopWatch") as HTMLElement;
+        const oppClock = container.querySelector("#opponentStopWatch") as HTMLElement;
+        if (myTimer && myClock) myClock.innerText = latestTickTime;
+        if (opponentTimer && oppClock) oppClock.innerText = latestTickTime;
+    };
 
-	//Om en spelare ragequitar, visa namn och play again knapp
-	socket.on("playerRageQuit", (username: string) => {
-		alert(`${username} lämnade spelet!`);
-		window.location.reload();
-		gameOverWrapper.style.display = "block";
-		gameOverText.textContent = `${username} ragequit, push button play again`;
-	});
+    const startMyTimer = () => { stopMyTimer(); myTimer = setInterval(tick, 10); };
+    const startOpponentTimer = () => { stopOpponentTimer(); opponentTimer = setInterval(tick, 10); };
+    const stopMyTimer = () => { if (myTimer) { clearInterval(myTimer); myTimer = null; } };
+    const stopOpponentTimer = () => { if (opponentTimer) { clearInterval(opponentTimer); opponentTimer = null; } };
 
-	// Virus-logik - Hjälpfunktioner för att hantera intervallerna
-	const startMyTimer = () => {
-		stopMyTimer();
-		if (myTimer === null) {
-			myTimer = setInterval(tick, 10);
-		}
-	};
+    const virusElement = container.querySelector("#virus") as HTMLElement;
 
-	const startOpponentTimer = () => {
-		stopOpponentTimer();
-		if (opponentTimer === null) {
-			opponentTimer = setInterval(tick, 10);
-		}
-	};
+    // Registreras en gång och hanterar klick, reaktionstid och socket-emit
+    const handleVirusClick = () => {
+        if (virusElement.style.display === "none") return;
+        const reactionTime = Date.now() - timerStartedAt;
+        stopMyTimer();
+        const myClock = container.querySelector("#myStopWatch");
+        if (myClock) myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
+        if (currentGameRoomId) socket.emit("virusClicked", reactionTime, currentGameRoomId);
+        virusElement.style.display = "none";
+    };
+    virusElement.addEventListener("click", handleVirusClick);
 
-	const stopMyTimer = () => {
-		if (myTimer !== null) {
-			clearInterval(myTimer);
-			myTimer = null;
-		}
-	};
+    // Placerar viruset i rätt cell och startar klockorna
+    const showVirus = (virus: { positionX: number; positionY: number }) => {
+        const cells = container.querySelectorAll(".grid-cell");
+        const cell = cells[virus.positionY * 10 + virus.positionX] as HTMLElement;
+        if (cell && virusElement) {
+            // Nollställer klockorna innan ny runda visas
+            const oppClock = container.querySelector("#opponentStopWatch");
+            const myClock = container.querySelector("#myStopWatch");
+            if (oppClock && myClock) { oppClock.textContent = "0.00s"; myClock.textContent = "0.00s"; }
+            cell.appendChild(virusElement);
+            virusElement.style.display = "flex";
+            // Båda klockor startar exakt när viruset visas
+            timerStartedAt = Date.now();
+            startMyTimer();
+            startOpponentTimer();
+        }
+    };
 
-	const stopOpponentTimer = () => {
-		if (opponentTimer !== null) {
-			clearInterval(opponentTimer);
-			opponentTimer = null;
-		}
-	};
+    socket.on("virusPositionsAndTime", (virus) => {
+        round++;
+        if (round > 10) return;
+        // Om nedräkning pågår köas viruset tills den är klar
+        if (gameReady) showVirus(virus);
+        else pendingVirus = () => showVirus(virus);
+    });
 
-	/**
-	 * REAL-TIME TICK LOGIC
-	 * tick() räknar ut tidsskillnaden mellan nuet och när viruset visades
-	 * Uppdaterar klockorna lokalt var 10:e millisekund
-	 */
-	const tick = () => {
-		const timeElapsed = Date.now() - timerStartedAt;
-		const latestTickTime = (timeElapsed / 1000).toFixed(2) + "s";
+    // Fryser rätt klocka beroende på vem som klickade
+    socket.on("stopTimer", (isMe) => {
+        if (isMe) stopMyTimer(); else stopOpponentTimer();
+    });
 
-		const myStopWatch = container.querySelector("#myStopWatch") as HTMLSpanElement;
-		const opponentStopWatch = container.querySelector("#opponentStopWatch") as HTMLSpanElement;
+    socket.on("currentGameResult", (p1, p2) => {
+        stopMyTimer();
+        stopOpponentTimer();
+        // rensar alla lyssnare så de inte staplas vid omspel
+        socket.off("playersInRoom");
+        socket.off("showScores");
+        socket.off("stopTimer");
+        socket.off("playerRageQuit");
+        socket.off("virusPositionsAndTime");
+        socket.off("currentGameResult");
+        virusElement.removeEventListener("click", handleVirusClick);
 
-		if (myTimer !== null && myStopWatch) {
-			myStopWatch.innerText = latestTickTime;
-		}
-		if (opponentTimer !== null && opponentStopWatch) {
-			opponentStopWatch.innerText = latestTickTime;
-		}
-	};
+        const winnerPage = createWinnerPage(p1, p2, goToWaitingRoom, goToFirstPage);
+        const appContainer = document.querySelector("#app") || document.body;
+        appContainer.innerHTML = "";
+        appContainer.appendChild(winnerPage);
+    });
 
-	const virusElement = container.querySelector("#virus") as HTMLElement;
-
-	/**
-	 * Virus-klick registreras EN gång via addEventListener istället för
-	 * att tilldela onclick varje runda. Detta undviker inaktuella closures
-	 * och säkerställer att bara ETT klick-event finns registrerat.
-	 */
-	const handleVirusClick = () => {
-		if (virusElement.style.display === "none") return;
-
-		const reactionTime = Date.now() - timerStartedAt;
-
-		stopMyTimer();
-
-		const myClock = container.querySelector("#myStopWatch");
-		if (myClock) {
-			myClock.textContent = `${(reactionTime / 1000).toFixed(2)}s`;
-		}
-
-		if (currentGameRoomId) {
-			socket.emit("virusClicked", reactionTime, currentGameRoomId);
-		}
-
-		virusElement.style.display = "none";
-	};
-
-	virusElement.addEventListener("click", handleVirusClick);
-
-	socket.on("virusPositionsAndTime", (virus) => {
-		round++;
-		console.log(`[VIRUS] Runda ${round} mottagen`);
-
-		if (round > 10) {
-			socket.off("virusPositionsAndTime");
-			stopMyTimer();
-			stopOpponentTimer();
-			return;
-		}
-
-		const cells = container.querySelectorAll(".grid-cell");
-		const cellIndex = virus.positionY * 10 + virus.positionX;
-		const cell = cells[cellIndex] as HTMLElement;
-
-		if (!cell || !virusElement) {
-			console.warn(`[VIRUS] Ogiltigt cell-index: ${cellIndex}`);
-			return;
-		}
-
-		/**
-		 * NOLLSTÄLLNING VID NY RUNDA
-		 * Vi nollställer klockorna visuellt först NU när nästa runda faktiskt startar.
-		 * Detta gör att spelarna hinner se tiderna från förra rundan under pausen.
-		 */
-		const opponentClock = container.querySelector("#opponentStopWatch");
-		const myClock = container.querySelector("#myStopWatch");
-		if (opponentClock && myClock) {
-			opponentClock.textContent = "0.00s";
-			myClock.textContent = "0.00s";
-		}
-
-		// Placera virus och visa det
-		cell.appendChild(virusElement);
-		virusElement.style.display = "flex";
-
-		/**
-		 * SYNKAD START
-		 * Båda timers startar exakt när viruset ritas ut på skärmen
-		 */
-		timerStartedAt = Date.now();
-		startMyTimer();
-		startOpponentTimer();
-	});
-
-	/**
-	 * Idividuellt stopp via socket
-	 * lyssnar på servern för att veta när motståndarens klocka ska frysa
-	 * för att se motståndarens klocka ticka hos dig tills DE klickar.
-	 */
-	socket.on("stopTimer", (isMe: boolean) => {
-		if (isMe) {
-			stopMyTimer();
-		} else {
-			// Detta fryser motståndarens klocka på DIN skärm när DE klickar
-			stopOpponentTimer();
-		}
-	});
-
-	// connect gamePage with winnerPage
-	socket.on("currentGameResult", (player1, player2) => {
-		console.log("Spelet är slut, visar vinnarsidan");
-
-		// Städa upp timers och lyssnare
-		stopMyTimer();
-		stopOpponentTimer();
-		socket.off("playersInRoom");
-		socket.off("showScores");
-		socket.off("stopTimer");
-		socket.off("playerRageQuit");
-		socket.off("virusPositionsAndTime");
-		socket.off("currentGameResult");
-		virusElement.removeEventListener("click", handleVirusClick);
-
-		const winnerPage = createWinnerPage(player1, player2, goToWaitingRoom, goToFirstPage);
-		const appContainer = document.querySelector("#app") || document.body;
-		appContainer.innerHTML = "";
-		appContainer.appendChild(winnerPage);
-	});
-
-	return container;
+    return container;
 }
