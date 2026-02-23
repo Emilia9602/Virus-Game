@@ -19,6 +19,7 @@ export interface ServerToClientEvents {
     waiting: () => void;
     stopTimer: (playerId: boolean) => void;
     currentGameResult: (player1: Player, player2: Player) => void;
+    showLiveScore: (gamesInProgress: ShowLiveScore[]) => void;
 }
 
 // Events emitted by the client to the server
@@ -96,4 +97,10 @@ export interface CountDown {
 export interface Virus {
     positionX: number;
     positionY: number;
+}
+
+export interface ShowLiveScore {
+    id: string;
+    gameRound: number | null;
+    players: Player[]; 
 }
