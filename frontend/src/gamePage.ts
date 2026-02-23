@@ -163,7 +163,13 @@ export function createGamePage(
             const myClock = container.querySelector("#myStopWatch");
             if (oppClock && myClock) { oppClock.textContent = "0.00s"; myClock.textContent = "0.00s"; }
             cell.appendChild(virusElement);
-            virusElement.style.display = "flex";
+			//Startar om pulse-animationen varje gång viruset visas
+			virusElement.style.animation = "none";
+			virusElement.offsetHeight;
+			virusElement.style.animation = "";
+
+			virusElement.style.display = "flex";
+
             // Båda klockor startar exakt när viruset visas
             timerStartedAt = Date.now();
             startMyTimer();
