@@ -36,10 +36,10 @@ export function createGamePage(
 
     container.innerHTML = `
         <div class="game-ui">
-            <h2>Welcome! ${nickname}!</h2>
-            <div class="game-status">Waiting for virus...</div>
+            <h2 style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;">Welcome ${nickname}!</h2>
+            <div class="game-status" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;">How fast are you?</div>
             <div id="playerTimers" class="timer-container" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;"></div>
-            <div class="scores"></div>
+            <div class="scores" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;"></div>
         </div>
 
         <div class="game-board-wrapper" style="width: 600px; height: 600px; margin: 0 auto; border: 5px solid #333; position: relative;">
