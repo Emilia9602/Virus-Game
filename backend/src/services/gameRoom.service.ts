@@ -71,3 +71,11 @@ export const updateGameRoomRounds = async (gameRoomId: string) => {
 		},
 	});
 };
+
+//Raderar rummet från databasen när spelet är slut
+export const deleteGameRoom = async (gameRoomId: string) => {
+    return await prisma.gameRoom.delete({
+        where: { id: gameRoomId },
+    });
+};
+

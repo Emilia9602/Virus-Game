@@ -13,6 +13,7 @@ import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
 
 import {
 	createRoom,
+	deleteGameRoom,
 	getGameRoom,
 	getGameRooms,
 	updateGameRoomRounds,
@@ -184,6 +185,11 @@ export const handleConnection = (
 			if (gameRoom && gameRoom.gameRound !== null && gameRoom.gameRound >= 10) {
 				console.log("!!! GAME OVER TRIGGAT !!!");
 				io.to(gameRoomId).emit("currentGameResult", updatedPlayers[0], updatedPlayers[1]);
+				//Rensar spelarna och rummet från DB så play again fungerar
+				await deletePlayerInRoom(updatedPlayers[0].id);
+				await deletePlayerInRoom(updatedPlayers[1].id);
+				await deleteGameRoom(gameRoomId);
+
 				return; // Här dör spelet
 			}
 
