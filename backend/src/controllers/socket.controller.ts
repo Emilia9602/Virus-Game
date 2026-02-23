@@ -87,7 +87,7 @@ export const handleConnection = (
 
         const [p1, p2] = players;
 
-        if (p1.reactionTime !== null && p2.reactionTime !== null) {
+        if (p1.reactionTime && p2.reactionTime) {
             // Beräkna poäng
             if (p1.reactionTime < p2.reactionTime) {
                 await updatePlayerScores(p1.id);
