@@ -1,5 +1,8 @@
 import { GameRoom } from "@shared/types/Models.types.ts";
-import type { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketEvents.types.ts";
+import type {
+    ClientToServerEvents,
+    ServerToClientEvents,
+} from "@shared/types/SocketEvents.types.ts";
 import Debug from "debug";
 import { Server, Socket } from "socket.io";
 import { getVirusPositionAndTime } from "../helpers/virusPositionHelper.ts";
@@ -9,7 +12,7 @@ import {
     getGameRooms,
     getLiveScores,
     updateGameRoomRounds,
-    deleteGameRoom,
+    deleteGameRoom, // Importera raderingsfunktionen
 } from "../services/gameRoom.service.ts";
 import {
     createPlayer,
@@ -29,6 +32,7 @@ export const handleConnection = (
 ) => {
     debug("🙋 A user connected with id: %s", socket.id);
 
+    // Hjälpfunktion för att uppdatera alla klienter om pågående matcher
     const broadcastLiveScores = async () => {
         const ongoingGames = await getLiveScores();
         io.emit("showLiveScore", ongoingGames || []);
@@ -53,6 +57,7 @@ export const handleConnection = (
             reactionTime: null,
         });
 
+        // Uppdatera listan för alla så fort en spelare går in i ett rum
         await broadcastLiveScores();
 
         callback({ success: true, gameRoomId: gameRoom.id });
@@ -83,6 +88,7 @@ export const handleConnection = (
         const [p1, p2] = players;
 
         if (p1.reactionTime !== null && p2.reactionTime !== null) {
+            // Beräkna poäng
             if (p1.reactionTime < p2.reactionTime) {
                 await updatePlayerScores(p1.id);
             } else if (p2.reactionTime < p1.reactionTime) {
@@ -95,20 +101,23 @@ export const handleConnection = (
             await updateGameRoomRounds(gameRoomId);
             const gameRoom = await getGameRoom(gameRoomId);
 
+            // Hantera Game Over och radera rummet
             if (gameRoom && gameRoom.gameRound !== null && gameRoom.gameRound >= 10) {
                 io.to(gameRoomId).emit("currentGameResult", updatedPlayers[0], updatedPlayers[1]);
 
+                // Vänta 2 sekunder innan radering så att sista poängen hinner visas ordentligt
                 setTimeout(async () => {
                     await deleteGameRoom(gameRoomId);
-                    await broadcastLiveScores();
+                    await broadcastLiveScores(); // Uppdatera listan på förstasidan
                     debug("Match completed and room %s deleted", gameRoomId);
                 }, 2000);
                 return;
             }
 
+            // Uppdatera live-listan (visar aktuell runda i din frontend)
             await broadcastLiveScores();
-            await resetPlayerTimer(gameRoomId);
 
+            await resetPlayerTimer(gameRoomId);
             const { virus, setTimeOutTimer } = getVirusPositionAndTime();
             io.to(gameRoomId).emit("virusPositionsAndTime", virus, setTimeOutTimer);
         }
@@ -125,18 +134,16 @@ export const handleConnection = (
             const remainingPlayers = await getPlayersInRoom(gameRoomId);
 
             if (remainingPlayers.length === 0) {
-                // Ingen kvar, städa direkt
+                // Rummet är tomt, radera direkt
                 await deleteGameRoom(gameRoomId);
                 await broadcastLiveScores();
             } else {
-                // 1. Informera motståndaren direkt
+                // Informera motståndaren
                 io.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
 
-                // 2. Vänta lite med radering så klienten hinner reagera
-                setTimeout(async () => {
-                    await deleteGameRoom(gameRoomId);
-                    await broadcastLiveScores();
-                }, 3000);
+                // Radera rummet efter en kort stund så motståndaren hinner se rage-quit meddelandet
+                await deleteGameRoom(gameRoomId);
+                await broadcastLiveScores();
             }
         }
 
@@ -144,3 +151,4 @@ export const handleConnection = (
         debug("👋 User %s disconnected and cleanup triggered", socket.id);
     });
 };
+
