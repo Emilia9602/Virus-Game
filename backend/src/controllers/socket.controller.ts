@@ -19,6 +19,7 @@ import {
     deletePlayerInRoom,
     getPlayerInRoom,
     getPlayersInRoom,
+    resetPlayerScores,
     resetPlayerTimer,
     updatePlayerScores,
     updatePlayerTimer,
@@ -127,8 +128,10 @@ export const handleConnection = (
         const player = await getPlayerInRoom(socket.id);
         if (!player) return;
 
+		await resetPlayerScores(player.id);
+
         const gameRoomId = player.gameRoomId;
-        await deletePlayerInRoom(socket.id);
+        await deletePlayerInRoom(player.id);
 
         if (gameRoomId) {
             const remainingPlayers = await getPlayersInRoom(gameRoomId);
