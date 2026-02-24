@@ -90,14 +90,14 @@ export const handleConnection = (
 		if (!player) return;
 
 		await updatePlayerTimer(socket.id, reactionTime);
-		socket.to(gameRoomId).emit("stopTimer", socket.id);
+		socket.to(gameRoomId).emit("stopTimer", socket.id, reactionTime);
 
 		const players = await getPlayersInRoom(gameRoomId);
 		if (players.length < 2) return;
 
 		const [player1, player2] = players;
 
-		io.to(gameRoomId). emit("stopTimer", socket.id);
+		io.to(gameRoomId).emit("stopTimer", socket.id, reactionTime);
 
 		// ONLY execute scoring if BOTH have reaction times
 		if (player1.reactionTime && player2.reactionTime) {

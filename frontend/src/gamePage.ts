@@ -165,7 +165,7 @@ export function createGamePage(
             cell.appendChild(virusElement);
 			//Startar om pulse-animationen varje gång viruset visas
 			virusElement.style.animation = "none";
-			virusElement.offsetHeight;
+			void virusElement.offsetHeight;
 			virusElement.style.animation = "";
 
 			virusElement.style.display = "flex";
@@ -186,11 +186,16 @@ export function createGamePage(
     });
 
     // Fryser rätt klocka beroende på vem som klickade
-    socket.on("stopTimer", (clickedPlayerId) => {
+    socket.on("stopTimer", (clickedPlayerId, officialTime) => {
+		const formattedTime = (officialTime / 1000).toFixed(2) + "s";
 		if (clickedPlayerId === socket.id) {
 			stopMyTimer();
+			const myClock = container.querySelector("#myStopWatch") as HTMLElement;
+			if (myClock) myClock.textContent = formattedTime;
 		} else {
 			stopOpponentTimer();
+			const oppClock = container.querySelector("#opponentStopWatch") as HTMLElement;
+        if (oppClock) oppClock.textContent = formattedTime;
 		}
 	});
 
