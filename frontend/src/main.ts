@@ -49,6 +49,42 @@ socket.on("showLiveScore", (gamesInProgress) => {
 	}
 });
 
+socket.on("showRecentGames", (games) => {
+    // Väntar så att DOM hinner skapas om man precis laddat sidan
+
+        const historyListEl = document.querySelector("#history-list");
+        if (!historyListEl) return;
+
+        if (games.length === 0) {
+            historyListEl.innerHTML = `<li class="loading-msg">No recent matches</li>`;
+            return;
+        }
+
+        historyListEl.innerHTML = games
+            .map((game) => {
+                const isDraw = game.player1Score === game.player2Score;
+                const winner = game.player1Score > game.player2Score
+                    ? game.player1UserName
+                    : game.player2UserName;
+
+                return `
+                    <li class="history-item">
+                        <div class="history-players">
+                            <strong>${game.player1UserName}</strong> vs <strong>${game.player2UserName}</strong>
+                        </div>
+                        <div class="history-score">
+                            ${game.player1Score} - ${game.player2Score}
+                        </div>
+                        <small class="history-winner">
+                            ${isDraw ? "Draw" : `Winner: ${winner}`}
+                        </small>
+                    </li>
+                `;
+            })
+            .join("");
+   
+});
+
 socket.on("connect", () => {
 	console.log("LOG 0: Socket connected. ID:", socket.id);
 });

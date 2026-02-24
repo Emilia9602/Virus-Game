@@ -119,7 +119,10 @@ export const handleConnection = (
 				setTimeout(async () => {
 					await deleteGameRoom(gameRoomId);
 					await broadcastLiveScores();
+
+
 					await broadcastRecentGames();
+
 					debug("Match completed and room %s deleted", gameRoomId);
 				}, 2000);
 				return;
@@ -127,6 +130,7 @@ export const handleConnection = (
 
 			// Uppdatera live-listan (visar aktuell runda i din frontend)
 			await broadcastLiveScores();
+
 
 			await resetPlayerTimer(gameRoomId);
 			const { virus, setTimeOutTimer } = getVirusPositionAndTime();
@@ -158,6 +162,7 @@ export const handleConnection = (
 				setTimeout(async () => {
 					await deleteGameRoom(gameRoomId);
 					await broadcastLiveScores();
+					await broadcastRecentGames();
 				}, 3000);
 			}
 		}
