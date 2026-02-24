@@ -17,7 +17,7 @@ export interface ServerToClientEvents {
     playersInRoom: (players: Player[]) => void;
     virusPositionsAndTime: (data: Virus, randomTime: number) => void;
     waiting: () => void;
-    stopTimer: (playerId: boolean) => void;
+    stopTimer: (playerId: string) => void;
     currentGameResult: (player1: Player, player2: Player) => void;
 }
 

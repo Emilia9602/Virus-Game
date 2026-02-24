@@ -128,8 +128,8 @@ export const handleConnection = (
 		if (players.length < 2) return;
 
 		const [player1, player2] = players;
-		io.to(player1.id).emit("stopTimer", player1.id === socket.id);
-		io.to(player2.id).emit("stopTimer", player2.id === socket.id);
+
+		io.to(gameRoomId). emit("stopTimer", socket.id);
 
 		// ONLY execute scoring if BOTH have reaction times
 		if (player1.reactionTime && player2.reactionTime) {
@@ -165,14 +165,6 @@ export const handleConnection = (
 					p2.score,
 				);
 			}
-			// Hämta de ABSOLUT senaste poängen från DB nu
-			//const playersInRoom = await getPlayersInRoom(gameRoomId);
-			//const p1 = playersInRoom[0];
-			//const p2 = playersInRoom[1];
-
-			// Skicka showScores (enligt interface: p1Score, p2Score)
-			// Se till att p1 och p2 skickas i samma ordning varje gång!
-			//io.to(gameRoomId).emit("showScores", p1.score, p2.score);
 
 			// Uppdatera runda
 			await updateGameRoomRounds(gameRoomId);
