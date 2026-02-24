@@ -154,7 +154,7 @@ export const handleConnection = (
 
 		if (gameRoomId) {
 			// Informera motståndaren
-			socket.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
+			io.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
 			await deletePlayerInRoom(player.id);
 
 			const remainingPlayers = await getPlayersInRoom(gameRoomId);
