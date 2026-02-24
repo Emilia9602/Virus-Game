@@ -1,6 +1,8 @@
 import type {
 	ClientToServerEvents,
+	GameResult,
 	ServerToClientEvents,
+	ShowLiveScore,
 } from "@shared/types/SocketEvents.types.ts";
 import { io, Socket } from "socket.io-client";
 import "./assets/scss/style.scss";
@@ -13,6 +15,12 @@ console.log("LOG 1: main.ts loaded");
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 console.log("LOG 2: Connecting to:", SOCKET_HOST);
 
+// global variabel
+let latestGamesState: GameResult[]=[];
+let liveGamesState: ShowLiveScore[] = [];
+
+
+
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 	io(SOCKET_HOST);
 
@@ -23,22 +31,33 @@ socket.on("countDown", (num) => {
 const app = document.querySelector<HTMLDivElement>("#app")!;
 console.log("LOG 3: #app element found:", !!app);
 
-// Uppdatera antal aktiva spel och eventuellt live-detaljer
+
+// Uppdatera antal aktiva spel
 socket.on("showLiveScore", (gamesInProgress) => {
-	const activeCountEl = document.querySelector("#active-games-count");
-	if (activeCountEl) {
-		activeCountEl.textContent = gamesInProgress.length.toString();
-	}
+	liveGamesState = gamesInProgress;
+    renderLiveScores();
 
-	//Uppdatera detaljlistan (Vem spelar mot vem och vilken runda)
-	const liveDetailsEl = document.querySelector("#live-games-details");
-	if (liveDetailsEl) {
-		if (gamesInProgress.length === 0) {
-			liveDetailsEl.innerHTML = `<li>No games currently active</li>`;
-			return;
-		}
+});
 
-		liveDetailsEl.innerHTML = gamesInProgress
+
+
+	const renderLiveScores = ()=>{
+		const activeCountEl = document.querySelector("#active-games-count");
+		const liveDetailsEl = document.querySelector("#live-games-details");
+
+		// Uppdatera räknaren om den finns
+    if (activeCountEl) {
+        activeCountEl.textContent = liveGamesState.length.toString();
+    }
+
+    // Uppdatera listan om den finns
+    if (liveDetailsEl) {
+        if (liveGamesState.length === 0) {
+            liveDetailsEl.innerHTML = `<li>No games currently active</li>`;
+            return;
+        }
+
+		liveDetailsEl.innerHTML = liveGamesState
 			.map((game) => {
 				const p1 = game.players[0]?.username || "Waiting...";
 				const p2 = game.players[1]?.username || "Waiting...";
@@ -47,43 +66,45 @@ socket.on("showLiveScore", (gamesInProgress) => {
 			})
 			.join("");
 	}
-});
+}
+
 
 socket.on("showRecentGames", (games) => {
-    // Väntar så att DOM hinner skapas om man precis laddat sidan
-
-        const historyListEl = document.querySelector("#history-list");
-        if (!historyListEl) return;
-
-        if (games.length === 0) {
-            historyListEl.innerHTML = `<li class="loading-msg">No recent matches</li>`;
-            return;
-        }
-
-        historyListEl.innerHTML = games
-            .map((game) => {
-                const isDraw = game.player1Score === game.player2Score;
-                const winner = game.player1Score > game.player2Score
-                    ? game.player1UserName
-                    : game.player2UserName;
-
-                return `
-                    <li class="history-item">
-                        <div class="history-players">
-                            <strong>${game.player1UserName}</strong> vs <strong>${game.player2UserName}</strong>
-                        </div>
-                        <div class="history-score">
-                            ${game.player1Score} - ${game.player2Score}
-                        </div>
-                        <small class="history-winner">
-                            ${isDraw ? "Draw" : `Winner: ${winner}`}
-                        </small>
-                    </li>
-                `;
-            })
-            .join("");
-   
+    latestGamesState = games;
+    renderHistoryList();
 });
+
+function renderHistoryList() {
+    const historyListEl = document.querySelector("#history-list");
+    if (!historyListEl) return;
+
+    if (latestGamesState.length === 0) {
+        historyListEl.innerHTML = `<li class="loading-msg">No recent matches</li>`;
+        return;
+    }
+
+    historyListEl.innerHTML = latestGamesState
+        .map((game) => {
+            const isDraw = game.player1Score === game.player2Score;
+            const winner = game.player1Score > game.player2Score
+                ? game.player1UserName
+                : game.player2UserName;
+
+            return `
+                <li class="history-item">
+                    <div class="history-players">
+                        <strong>${game.player1UserName}</strong> vs <strong>${game.player2UserName}</strong>
+                    </div>
+                    <div class="history-score">
+                        ${game.player1Score} - ${game.player2Score}
+                    </div>
+                    <small class="history-winner">
+                        ${isDraw ? "Draw" : `Winner: ${winner}`}
+                    </small>
+                </li>`;
+        })
+        .join("");
+}
 
 socket.on("connect", () => {
 	console.log("LOG 0: Socket connected. ID:", socket.id);
@@ -98,6 +119,9 @@ function showFirstPage() {
 	});
 	console.log("LOG 5: Appending firstPage to DOM");
 	app.appendChild(firstPage);
+
+	renderHistoryList();
+	renderLiveScores();
 }
 
 function showWaitingRoom(nickname: string) {
