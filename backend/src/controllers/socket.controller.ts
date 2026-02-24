@@ -48,6 +48,7 @@ export const handleConnection = (
 	broadcastLiveScores();
 	broadcastRecentGames();
 
+	//En spelare vill joina
 	socket.on("playerJoinRequest", async (username, callback) => {
 		const rooms: GameRoom[] = await getGameRooms();
 		let gameRoom = rooms.find((room) => room.players?.length === 1);
@@ -75,6 +76,8 @@ export const handleConnection = (
 		const playersInRoom = await getPlayersInRoom(gameRoom.id);
 
 		if (playersInRoom.length === 2) {
+
+			//Nollställ timers och poäng för båda spelarna om de varit i ett tidigare spel
 			await resetPlayerScores(playersInRoom[0].id);
 			await resetPlayerScores(playersInRoom[1].id);
 			await resetPlayerTimer(gameRoom.id);
@@ -112,6 +115,7 @@ export const handleConnection = (
 				await updatePlayerScores(p2.id);
 			}
 
+			//Skicka uppdaterade poäng till spelarna
 			const updatedPlayers = await getPlayersInRoom(gameRoomId);
 			io.to(gameRoomId).emit("showScores", updatedPlayers[0].score, updatedPlayers[1].score);
 
@@ -144,16 +148,14 @@ export const handleConnection = (
 	});
 
 	socket.on("disconnect", async () => {
+
 		const player = await getPlayerInRoom(socket.id);
 		if (!player) return;
 
-		//await resetPlayerScores(player.id);
-
 		const gameRoomId = player.gameRoomId;
-		//await deletePlayerInRoom(player.id);
 
 		if (gameRoomId) {
-			// Informera motståndaren
+			// Informera motståndaren, ta sedan bort spelaren som ragequita
 			io.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
 			await deletePlayerInRoom(player.id);
 
@@ -164,8 +166,6 @@ export const handleConnection = (
 				await deleteGameRoom(gameRoomId);
 				await broadcastLiveScores();
 			} else {
-				// Informera motståndaren
-				//socket.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
 
 				// Radera rummet efter en kort stund så motståndaren hinner se rage-quit meddelandet
 				setTimeout(async () => {

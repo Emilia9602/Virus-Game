@@ -60,6 +60,10 @@ export function createFirstPage(onStart: (nickname: string) => void): HTMLElemen
 
     return container;
 }
+
+// - - - - LÄS HÄR - - - -
+//Ska allt detta bort? Det är ju exakt samma som står ovan och koden funkar som den ska :)
+
 /* console.log("LOG 4.1: firstPage.ts script execution");
 
 export function createFirstPage(onStart: (nickname: string) => void): HTMLElement {

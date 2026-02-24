@@ -110,6 +110,7 @@ socket.on("connect", () => {
 	console.log("LOG 0: Socket connected. ID:", socket.id);
 });
 
+//Visa första sidan
 function showFirstPage() {
 	console.log("LOG 4: showFirstPage triggered");
 	app.innerHTML = "";
@@ -124,6 +125,7 @@ function showFirstPage() {
 	renderLiveScores();
 }
 
+//Visa sidan när man väntar på en annan spelare
 function showWaitingRoom(nickname: string) {
 	console.log("LOG 7: showWaitingRoom triggered for:", nickname);
 	app.innerHTML = "";
@@ -145,6 +147,7 @@ function showWaitingRoom(nickname: string) {
 	app.appendChild(waitingRoom);
 }
 
+//Visa spelsidan
 function showGamePage(nickname: string) {
 	console.log("LOG 14: showGamePage triggered for:", nickname);
 	app.innerHTML = "";

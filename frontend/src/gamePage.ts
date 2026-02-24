@@ -71,7 +71,7 @@ export function createGamePage(
             <div class="modal-content">
                 <h2>You Won!</h2>
                 <p>Bad News! <strong>${username}</strong> didnt want to play with you anymore.</p>
-                <button id="modal-home-btn" class="modal-btn"></button>
+                <button id="modal-home-btn" class="modal-btn">Back To Start</button>
             </div>
         `;
 		document.body.appendChild(overlay);
@@ -124,6 +124,7 @@ export function createGamePage(
 		// Göm viruset om det är synligt
 		if (virusElement) virusElement.style.display = "none";
 
+		//Visa ragequit modal
 		showRageQuitModal(username, () => {
 			goToFirstPage();
 		});
@@ -151,6 +152,7 @@ export function createGamePage(
 		}
 	});
 
+	//Visa spelarnas poäng i gameRoom
 	socket.on("showScores", (p1, p2) => {
 		const scoreEl = container.querySelector(".scores");
 		const myScore = iAmP1 ? p1 : p2;

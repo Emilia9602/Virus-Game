@@ -464,8 +464,6 @@ body {
 	z-index: 2;
 	display: flex;
 	flex-direction: column;
-	// align-items: center;
-	// text-align: center;
 	gap: 1.5rem;
 	padding: 0 2rem;
 }
@@ -538,10 +536,9 @@ body {
 
 // Variabler för färger och stil
 $modal-bg: rgba(0, 0, 0, 0.85);
-$content-bg: #ffffff;
-$primary-color: #0984e3;
-$danger-color: #d63031;
-$text-color: #2d3436;
+$content-bg: rgb(72, 69, 69);
+$primary-color: #28a745;
+$text-color: #e0d5d5;
 
 .modal-overlay {
 	position: fixed;
@@ -569,9 +566,10 @@ $text-color: #2d3436;
 		animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
 		h2 {
-			color: $danger-color;
+			font-family: "Creepster", system-ui;
+			color: $primary-color;
 			margin-bottom: 1rem;
-			font-size: 1.8rem;
+			font-size: 2.5rem;
 		}
 
 		p {
@@ -580,7 +578,7 @@ $text-color: #2d3436;
 			margin-bottom: 2rem;
 
 			strong {
-				color: darken($primary-color, 10%);
+				color: #e74c3c;
 			}
 		}
 
@@ -590,7 +588,7 @@ $text-color: #2d3436;
 			border: none;
 			padding: 0.8rem 1.8rem;
 			border-radius: 8px;
-			font-size: 1rem;
+			font-size: 1.2rem;
 			font-weight: 600;
 			cursor: pointer;
 			transition:

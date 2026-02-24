@@ -9,10 +9,8 @@ export {}
 export interface ServerToClientEvents {
     startGame: () => void;
     countDown: (number: number) => void;
-    showUpdatedGameStatus: (data: UpdateGameStatus) => void;
     showOpponentTimer: (data: number) => void;
     showScores: (player1Score: number, player2Score: number) => void;
-    showResult: (data: GameResult) => void;
     playerRageQuit: (username: string, gameRoomId: string) => void;
     playersInRoom: (players: Player[]) => void;
     virusPositionsAndTime: (data: Virus, randomTime: number) => void;
@@ -32,13 +30,6 @@ export interface ClientToServerEvents {
 
     updateTimer: (
         reactionTime: number, 
-       // playerId: string,
-    ) => void;
-
-    //Se om denna används
-    updateGameStatus: (
-        data: UpdateGameStatus,
-        callback: (response: UpdateGameStatus) => void
     ) => void;
 
     updateResult: (
@@ -46,13 +37,12 @@ export interface ClientToServerEvents {
         callback: (response: GameResult) => void
     ) => void;
 
+    //Används denna? Annars ta bort
     countDown: (
         data: CountDown,
         callback: (threeTwoOne: CountDown) => void
     ) => void;
     virusClicked: (reactionTime: number, gameRoomId: string) => void;
-    //-----ber servern att få spela igen, (play again knapp)------/
-    // playAgainRequest: () => void;
 }
 
 // RoomWithPlayers extends GameRoom and adds players array and count
@@ -77,13 +67,6 @@ export interface UpdateTimer {
     reactionTime: number,
 }
 
-//Se om denna används
-export interface UpdateGameStatus {
-    gameRound: number,
-    reactionTime: number,
-    score: number,
-}
-
 export interface GameResult { 
     player1UserName: string,
     player1Score: number,
@@ -91,6 +74,7 @@ export interface GameResult {
     player2Score: number,
 }
 
+//Används denna? Annars ta bort
 export interface CountDown {
     threeTwoOne: number[],
 }

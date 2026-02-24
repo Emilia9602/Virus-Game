@@ -24,6 +24,7 @@ export const createPlayer = (data: Player) => {
  * @returns Players in the room
  */
 
+//Hämta alla spelare i rummet
 export const getPlayersInRoom = async (gameRoomId: string) => {
 	return await prisma.player.findMany({
 		where: { gameRoomId: gameRoomId },
@@ -51,6 +52,7 @@ export const getPlayerInRoom = (playerId: string) => {
  * @returns Player in the room
  */
 
+//Uppdatera spelarens reaktionstid
 export const updatePlayerTimer = async (playerId: string, reactionTime: number) => {
 	return await prisma.player.update({
 		where: { id: playerId },
@@ -66,6 +68,7 @@ export const updatePlayerTimer = async (playerId: string, reactionTime: number) 
  * Starta en ny runda o nollstall reaktiontiden
  */
 
+//Nollställ spelarnas reaktionstider
 export const resetPlayerTimer = async (gameRoomId: string) => {
 	return await prisma.player.updateMany({
 		where: { gameRoomId },
@@ -80,6 +83,7 @@ export const resetPlayerTimer = async (gameRoomId: string) => {
  * @returns
  */
 
+//Uppdatera spelaren som ska få poäng
 export const updatePlayerScores = async (playerId: string) => {
 	return await prisma.player.update({
 		where: { id: playerId },
@@ -98,6 +102,7 @@ export const updatePlayerScores = async (playerId: string) => {
  * @returns Player in the room
  */
 
+//Nollställ spelarens poäng från förra spelet
 export const resetPlayerScores = async (playerId: string) => {
 	return await prisma.player.update({
 		where: { id: playerId },
@@ -111,6 +116,8 @@ export const resetPlayerScores = async (playerId: string) => {
  * @param playerId  ID of the player
  * @returns Player in the room
  */
+
+//Radera spelare och disconnecta från rum
 export const deletePlayerInRoom = (playerId: string) => {
 	return prisma.player.delete({
 		where: { id: playerId },
@@ -121,6 +128,7 @@ export const deletePlayerInRoom = (playerId: string) => {
 Delete all players and games
 */
 
+//Radera alla spelare och spel
 export const deleteAllPlayersAndGames = async () => {
 	await prisma.player.deleteMany();
 	await prisma.gameRoom.deleteMany();

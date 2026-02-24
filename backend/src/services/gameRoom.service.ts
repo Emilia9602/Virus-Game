@@ -29,7 +29,6 @@ export const getGameRooms = async () => {
 	return await prisma.gameRoom.findMany({
 		include: {
 			players: true, // Inkludera alla spelare i rummet
-			//_count: { select: { players: true } }, // Räkna antalet spelare
 		},
 	});
 };
