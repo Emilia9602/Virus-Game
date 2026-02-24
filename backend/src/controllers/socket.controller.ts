@@ -109,6 +109,7 @@ export const handleConnection = (
 			io.to(gameRoomId).emit("showScores", updatedPlayers[0].score, updatedPlayers[1].score);
 
 			await updateGameRoomRounds(gameRoomId);
+			await broadcastLiveScores();
 			const gameRoom = await getGameRoom(gameRoomId);
 
 			// Hantera Game Over och radera rummet
