@@ -77,6 +77,8 @@ export const handleConnection = (
 		if (playersInRoom.length === 2) {
 			await resetPlayerScores(playersInRoom[0].id);
 			await resetPlayerScores(playersInRoom[1].id);
+			await resetPlayerTimer(gameRoom.id);
+
 			io.to(gameRoom.id).emit("startGame");
 			io.to(gameRoom.id).emit("playersInRoom", playersInRoom);
 
@@ -152,7 +154,7 @@ export const handleConnection = (
 
 		if (gameRoomId) {
 			// Informera motståndaren
-			socket.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
+			io.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
 			await deletePlayerInRoom(player.id);
 
 			const remainingPlayers = await getPlayersInRoom(gameRoomId);
