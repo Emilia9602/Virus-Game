@@ -186,18 +186,17 @@ export function createGamePage(
     });
 
     // Fryser rätt klocka beroende på vem som klickade
-    socket.on("stopTimer", (clickedPlayerId, officialTime) => {
-		const formattedTime = (officialTime / 1000).toFixed(2) + "s";
-		if (clickedPlayerId === socket.id) {
-			stopMyTimer();
-			const myClock = container.querySelector("#myStopWatch") as HTMLElement;
-			if (myClock) myClock.textContent = formattedTime;
-		} else {
-			stopOpponentTimer();
-			const oppClock = container.querySelector("#opponentStopWatch") as HTMLElement;
-        if (oppClock) oppClock.textContent = formattedTime;
-		}
-	});
+	socket.on("stopTimer", () => {
+        stopOpponentTimer();
+    });
+
+	socket.on("showOpponentTimer", (officialTime: number) => {
+        const formattedTime = (officialTime / 1000).toFixed(2) + "s";
+        const oppClock = container.querySelector("#opponentStopWatch") as HTMLElement;
+        if (oppClock) {
+            oppClock.textContent = formattedTime;
+        }
+    });
 
     socket.on("currentGameResult", (p1, p2) => {
         stopMyTimer();
