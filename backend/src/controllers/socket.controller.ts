@@ -66,6 +66,8 @@ export const handleConnection = (
         const playersInRoom = await getPlayersInRoom(gameRoom.id);
 
         if (playersInRoom.length === 2) {
+			await resetPlayerScores(playersInRoom[0].id);
+			await resetPlayerScores(playersInRoom[1].id);
             io.to(gameRoom.id).emit("startGame");
             io.to(gameRoom.id).emit("playersInRoom", playersInRoom);
 
