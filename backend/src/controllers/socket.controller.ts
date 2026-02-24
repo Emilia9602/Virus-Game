@@ -81,7 +81,7 @@ export const handleConnection = (
         if (!player) return;
 
         await updatePlayerTimer(socket.id, reactionTime);
-        socket.to(gameRoomId).emit("stopTimer", false);
+        socket.to(gameRoomId).emit("stopTimer", socket.id);
 
         const players = await getPlayersInRoom(gameRoomId);
         if (players.length < 2) return;
