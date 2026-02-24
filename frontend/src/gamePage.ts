@@ -187,7 +187,7 @@ export function createGamePage(
 
     // Fryser rätt klocka beroende på vem som klickade
     socket.on("stopTimer", (clickedPlayerId) => {
-		if (clickedPlayerId === socket.id) {
+		if (clickedPlayerId === false) {
 			stopMyTimer();
 		} else {
 			stopOpponentTimer();
