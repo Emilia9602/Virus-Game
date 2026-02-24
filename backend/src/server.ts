@@ -5,6 +5,7 @@ import http from "http";
 import { Server } from "socket.io";
 import { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketEvents.types.ts";
 import { handleConnection } from "./controllers/socket.controller.ts";
+import { deleteAllPlayersAndGames } from "./services/player.service.ts";
 
 // Read port to start server on from `.env`, otherwise default to port 3000
 const PORT = process.env.PORT || 3000;
@@ -32,9 +33,20 @@ io.on("connection", (socket) => {
 });
 
 /**
- * Listen on provided port, on all network interfaces.
+ * Delete all players and rooms
  */
-httpServer.listen(PORT);
+
+deleteAllPlayersAndGames()
+	.then(() => {
+		/**
+		 * Listen on provided port, on all network interfaces.
+		 */
+		httpServer.listen(PORT);
+	})
+	.catch((error: NodeJS.ErrnoException) => {
+		console.error("Could not delete all players or rooms", error);
+		throw error;
+	});
 
 /**
  * Event listener for HTTP server "error" event.
