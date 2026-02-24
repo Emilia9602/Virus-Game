@@ -75,6 +75,8 @@ export const handleConnection = (
 		const playersInRoom = await getPlayersInRoom(gameRoom.id);
 
 		if (playersInRoom.length === 2) {
+			await resetPlayerScores(playersInRoom[0].id);
+			await resetPlayerScores(playersInRoom[1].id);
 			io.to(gameRoom.id).emit("startGame");
 			io.to(gameRoom.id).emit("playersInRoom", playersInRoom);
 
@@ -139,7 +141,6 @@ export const handleConnection = (
 		}
 	});
 
-
 	socket.on("disconnect", async () => {
 		const player = await getPlayerInRoom(socket.id);
 		if (!player) return;
@@ -165,6 +166,7 @@ export const handleConnection = (
 					await deleteGameRoom(gameRoomId);
 					await broadcastLiveScores();
 					await broadcastRecentGames();
+					debug("Room %s deleted after ragequit delay", gameRoomId);
 				}, 3000);
 			}
 		}

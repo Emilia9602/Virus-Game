@@ -120,8 +120,12 @@ export function createGamePage(
     });
 
     socket.on("playerRageQuit", (username) => {
+
+		stopMyTimer();
+		stopOpponentTimer();
         alert(`${username} lämnade spelet!`);
-        window.location.reload();
+        goToFirstPage();
+		//window.location.reload();
     });
 
     // Timer funktioner
