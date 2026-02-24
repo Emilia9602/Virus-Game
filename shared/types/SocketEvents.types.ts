@@ -84,7 +84,7 @@ export interface UpdateGameStatus {
     score: number,
 }
 
-export interface GameResult {
+export interface GameResult { 
     player1UserName: string,
     player1Score: number,
     player2UserName: string,

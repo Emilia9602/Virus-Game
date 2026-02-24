@@ -24,7 +24,7 @@ import {
 	updatePlayerScores,
 	updatePlayerTimer,
 } from "../services/player.service.ts";
-import { getTenLatestPostGames } from "../services/postgame.service.ts";
+import { createPostGame, getTenLatestPostGames } from "../services/postgame.service.ts";
 
 const debug = Debug("backend:socket_controller");
 
@@ -141,13 +141,12 @@ export const handleConnection = (
 			// Hantera Game Over och radera rummet
 			if (gameRoom && gameRoom.gameRound !== null && gameRoom.gameRound >= 10) {
 				io.to(gameRoomId).emit("currentGameResult", updatedPlayers[0], updatedPlayers[1]);
+				await createPostGame([updatedPlayers[0], updatedPlayers[1]]);
 
 				// Vänta 2 sekunder innan radering så att sista poängen hinner visas ordentligt
 				setTimeout(async () => {
 					await deleteGameRoom(gameRoomId);
 					await broadcastLiveScores();
-
-
 					await broadcastRecentGames();
 
 					debug("Match completed and room %s deleted", gameRoomId);
@@ -155,13 +154,11 @@ export const handleConnection = (
 				return;
 			}
 
-			// Uppdatera live-listan (visar aktuell runda i din frontend)
-			await broadcastLiveScores();
-
-
 			await resetPlayerTimer(gameRoomId);
-			const { virus, setTimeOutTimer } = getVirusPositionAndTime();
-			io.to(gameRoomId).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+			setTimeout(() => {
+				const { virus, setTimeOutTimer } = getVirusPositionAndTime();
+				io.to(gameRoomId).emit("virusPositionsAndTime", virus, setTimeOutTimer);
+			}, 1500);
 		}
 	});
 
