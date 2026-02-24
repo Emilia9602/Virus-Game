@@ -112,7 +112,16 @@ export const resetPlayerScores = async (playerId: string) => {
  * @returns Player in the room
  */
 export const deletePlayerInRoom = (playerId: string) => {
-	prisma.player.delete({
+	return prisma.player.delete({
 		where: { id: playerId },
 	});
+};
+
+/**
+Delete all players and games
+*/
+
+export const deleteAllPlayersAndGames = async () => {
+	await prisma.player.deleteMany();
+	await prisma.gameRoom.deleteMany();
 };
