@@ -24,6 +24,7 @@ import {
 	updatePlayerScores,
 	updatePlayerTimer,
 } from "../services/player.service.ts";
+import { getTenLatestPostGames } from "../services/postgame.service.ts";
 
 const debug = Debug("backend:socket_controller");
 
@@ -38,6 +39,14 @@ export const handleConnection = (
 		const ongoingGames = await getLiveScores();
 		io.emit("showLiveScore", ongoingGames || []);
 	};
+
+	// Hjälpfunktion för att skicka de 10 senaste resultaten till firstPage
+	const broadcastRecentGames = async () => {
+		const latestGames = await getTenLatestPostGames();
+		io.emit("showRecentGames", latestGames);
+	};
+	broadcastLiveScores();
+	broadcastRecentGames();
 
 	socket.on("playerJoinRequest", async (username, callback) => {
 		const rooms: GameRoom[] = await getGameRooms();
@@ -136,7 +145,8 @@ export const handleConnection = (
 				// Vänta 2 sekunder innan radering så att sista poängen hinner visas ordentligt
 				setTimeout(async () => {
 					await deleteGameRoom(gameRoomId);
-					await broadcastLiveScores(); // Uppdatera listan på förstasidan
+					await broadcastLiveScores();
+					await broadcastRecentGames();
 					debug("Match completed and room %s deleted", gameRoomId);
 				}, 2000);
 				return;

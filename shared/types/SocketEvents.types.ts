@@ -20,6 +20,7 @@ export interface ServerToClientEvents {
     stopTimer: (playerId: string) => void;
     currentGameResult: (player1: Player, player2: Player) => void;
     showLiveScore: (gamesInProgress: ShowLiveScore[]) => void;
+    showRecentGames: (latestGames: GameResult[]) => void;
 }
 
 // Events emitted by the client to the server
