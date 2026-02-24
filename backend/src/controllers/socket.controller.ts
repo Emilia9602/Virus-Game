@@ -86,21 +86,48 @@ export const handleConnection = (
         const players = await getPlayersInRoom(gameRoomId);
         if (players.length < 2) return;
 
-        const [p1, p2] = players;
+		const [player1, player2] = players;
 
-        if (p1.reactionTime && p2.reactionTime) {
-            // Beräkna poäng
-            if (p1.reactionTime < p2.reactionTime) {
-                await updatePlayerScores(p1.id);
-            } else if (p2.reactionTime < p1.reactionTime) {
-                await updatePlayerScores(p2.id);
-            }
+		io.to(gameRoomId). emit("stopTimer", socket.id);
 
-            const updatedPlayers = await getPlayersInRoom(gameRoomId);
-            io.to(gameRoomId).emit("showScores", updatedPlayers[0].score, updatedPlayers[1].score);
+		// ONLY execute scoring if BOTH have reaction times
+		if (player1.reactionTime && player2.reactionTime) {
+			console.log(`--- Round Calculation Start ---`);
+			console.log(`P1 (${player1.username}): ${player1.reactionTime}ms`);
+			console.log(`P2 (${player2.username}): ${player2.reactionTime}ms`);
 
-            await updateGameRoomRounds(gameRoomId);
-            const gameRoom = await getGameRoom(gameRoomId);
+			// 1. Uppdatera poäng i DB för vinnaren
+			if (player1.reactionTime < player2.reactionTime) {
+				await updatePlayerScores(player1.id);
+				console.log(`Vinnare: ${player1.username}`);
+			} else if (player2.reactionTime < player1.reactionTime) {
+				await updatePlayerScores(player2.id);
+				console.log(`Vinnare: ${player2.username}`);
+			}
+
+			// 2. Hämta de absolut senaste spelarna för att se att poängen faktiskt sparats
+			const updatedPlayers = await getPlayersInRoom(gameRoomId);
+
+			// Debug-logg för att bekräfta DB-status
+			if (updatedPlayers.length >= 2) {
+				console.log(
+					`[DB SYNC] Score i DB just nu -> ${updatedPlayers[0].username}: ${updatedPlayers[0].score}, ${updatedPlayers[1].username}: ${updatedPlayers[1].score}`,
+				);
+
+				// 3. Skicka de uppdaterade poängen till frontend
+				// Vi använder värdena direkt från 'updatedPlayers' (DB) istället för de gamla objekten
+				const p1 = updatedPlayers[0];
+				const p2 = updatedPlayers[1];
+				io.to(gameRoomId).emit(
+					"showScores",
+					p1.score,
+					p2.score,
+				);
+			}
+
+			// Uppdatera runda
+			await updateGameRoomRounds(gameRoomId);
+			const gameRoom = await getGameRoom(gameRoomId);
 
             // Hantera Game Over och radera rummet
             if (gameRoom && gameRoom.gameRound !== null && gameRoom.gameRound >= 10) {

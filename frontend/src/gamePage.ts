@@ -103,7 +103,7 @@ export function createGamePage(
 				iAmP1 = index === 0;
 			} else opponentName = player.username;
                 const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
-                return `<div class="player-box"><span>${isMe ? player.username + " (Du)" : player.username}</span><span id="${timerId}" style="font-family: monospace; font-weight: bold;">0.00s</span></div>`;
+                return `<div class="player-box"><span>${isMe ? player.username + " (Du)" : player.username}</span><span id="${timerId}">0.00s</span></div>`;
             }).join("");
 
 			const scoreEl = container.querySelector(".scores");
@@ -186,9 +186,13 @@ export function createGamePage(
     });
 
     // Fryser rätt klocka beroende på vem som klickade
-    socket.on("stopTimer", (isMe) => {
-        if (isMe) stopMyTimer(); else stopOpponentTimer();
-    });
+    socket.on("stopTimer", (clickedPlayerId) => {
+		if (clickedPlayerId === socket.id) {
+			stopMyTimer();
+		} else {
+			stopOpponentTimer();
+		}
+	});
 
     socket.on("currentGameResult", (p1, p2) => {
         stopMyTimer();
