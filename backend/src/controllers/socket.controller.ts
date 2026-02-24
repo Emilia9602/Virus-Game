@@ -145,12 +145,16 @@ export const handleConnection = (
 		const player = await getPlayerInRoom(socket.id);
 		if (!player) return;
 
-		await resetPlayerScores(player.id);
+		//await resetPlayerScores(player.id);
 
 		const gameRoomId = player.gameRoomId;
-		await deletePlayerInRoom(player.id);
+		//await deletePlayerInRoom(player.id);
 
 		if (gameRoomId) {
+			// Informera motståndaren
+			socket.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
+			await deletePlayerInRoom(player.id);
+
 			const remainingPlayers = await getPlayersInRoom(gameRoomId);
 
 			if (remainingPlayers.length === 0) {
@@ -159,7 +163,7 @@ export const handleConnection = (
 				await broadcastLiveScores();
 			} else {
 				// Informera motståndaren
-				io.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
+				//socket.to(gameRoomId).emit("playerRageQuit", player.username, gameRoomId);
 
 				// Radera rummet efter en kort stund så motståndaren hinner se rage-quit meddelandet
 				setTimeout(async () => {
