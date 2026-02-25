@@ -3,7 +3,7 @@
  */
 import type { Player, GameRoom } from "../../backend/generated/prisma/client.ts"
 
-export {}
+export { }
 
 // Events emitted by the server to the client
 export interface ServerToClientEvents {
@@ -29,7 +29,7 @@ export interface ClientToServerEvents {
     ) => void;
 
     updateTimer: (
-        reactionTime: number, 
+        reactionTime: number,
     ) => void;
 
     updateResult: (
@@ -37,13 +37,8 @@ export interface ClientToServerEvents {
         callback: (response: GameResult) => void
     ) => void;
 
-    //Används denna? Annars ta bort
-//     countDown: (
-//         data: CountDown,
-//         callback: (threeTwoOne: CountDown) => void
-//     ) => void;
-//     virusClicked: (reactionTime: number, gameRoomId: string) => void;
-// }
+    virusClicked: (reactionTime: number, gameRoomId: string) => void;
+}
 
 // RoomWithPlayers extends GameRoom and adds players array and count
 export interface RoomWithPlayers extends GameRoom {
@@ -55,10 +50,10 @@ export interface RoomWithPlayers extends GameRoom {
 
 export interface PlayerJoinRequest {
     success: boolean;
-    gameRoom: RoomWithPlayers | null; 
+    gameRoom: RoomWithPlayers | null;
 }
 
-export interface PlayerJoinResponse{
+export interface PlayerJoinResponse {
     success: boolean;
     gameRoomId: string;
 }
@@ -67,17 +62,12 @@ export interface UpdateTimer {
     reactionTime: number,
 }
 
-export interface GameResult { 
+export interface GameResult {
     player1UserName: string,
     player1Score: number,
     player2UserName: string,
     player2Score: number,
 }
-
-//Används denna? Annars ta bort
-// export interface CountDown {
-//     threeTwoOne: number[],
-// }
 
 export interface Virus {
     positionX: number;
@@ -87,5 +77,5 @@ export interface Virus {
 export interface ShowLiveScore {
     id: string;
     gameRound: number | null;
-    players: Player[]; 
+    players: Player[];
 }
