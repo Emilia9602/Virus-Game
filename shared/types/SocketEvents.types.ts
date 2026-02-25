@@ -38,12 +38,12 @@ export interface ClientToServerEvents {
     ) => void;
 
     //Används denna? Annars ta bort
-    countDown: (
-        data: CountDown,
-        callback: (threeTwoOne: CountDown) => void
-    ) => void;
-    virusClicked: (reactionTime: number, gameRoomId: string) => void;
-}
+//     countDown: (
+//         data: CountDown,
+//         callback: (threeTwoOne: CountDown) => void
+//     ) => void;
+//     virusClicked: (reactionTime: number, gameRoomId: string) => void;
+// }
 
 // RoomWithPlayers extends GameRoom and adds players array and count
 export interface RoomWithPlayers extends GameRoom {
@@ -75,9 +75,9 @@ export interface GameResult {
 }
 
 //Används denna? Annars ta bort
-export interface CountDown {
-    threeTwoOne: number[],
-}
+// export interface CountDown {
+//     threeTwoOne: number[],
+// }
 
 export interface Virus {
     positionX: number;

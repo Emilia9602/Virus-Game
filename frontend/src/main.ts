@@ -24,9 +24,10 @@ let liveGamesState: ShowLiveScore[] = [];
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 	io(SOCKET_HOST);
 
-socket.on("countDown", (num) => {
-	console.log("LOG 12: Socket countDown received:", num);
-});
+	//-----TOG BORT DENNA----//
+// socket.on("countDown", (num) => {
+// 	console.log("LOG 12: Socket countDown received:", num);
+// });
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 console.log("LOG 3: #app element found:", !!app);
