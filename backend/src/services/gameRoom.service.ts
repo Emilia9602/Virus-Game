@@ -5,8 +5,8 @@ import { prisma } from "../lib/prisma.ts";
 export const createRoom = async () => {
 	return await prisma.gameRoom.create({
 		data: {
-			gameOver: false, // Spelet är inte över när rummet skapas
-			gameRound: 0, // Börja på runda 0
+			gameOver: false,
+			gameRound: 0,
 		},
 		include: {
 			players: true,

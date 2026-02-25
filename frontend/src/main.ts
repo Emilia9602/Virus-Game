@@ -10,10 +10,8 @@ import { createFirstPage } from "./firstPage";
 import { createWaitingRoom } from "./waitingRoom";
 import { createGamePage } from "./gamePage";
 
-console.log("LOG 1: main.ts loaded");
-
 const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
-console.log("LOG 2: Connecting to:", SOCKET_HOST);
+console.log("Connecting to:", SOCKET_HOST);
 
 // global variabel
 let latestGamesState: GameResult[] = [];
@@ -22,13 +20,7 @@ let liveGamesState: ShowLiveScore[] = [];
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 	io(SOCKET_HOST);
 
-//-----TOG BORT DENNA----//
-// socket.on("countDown", (num) => {
-// 	console.log("LOG 12: Socket countDown received:", num);
-// });
-
 const app = document.querySelector<HTMLDivElement>("#app")!;
-console.log("LOG 3: #app element found:", !!app);
 
 // Uppdatera antal aktiva spel
 socket.on("showLiveScore", (gamesInProgress) => {
@@ -79,11 +71,6 @@ function renderHistoryList() {
 
 	historyListEl.innerHTML = latestGamesState
 		.map((game) => {
-			//const isDraw = game.player1Score === game.player2Score;
-			//const winner = game.player1Score > game.player2Score
-			//   ? game.player1UserName
-			// : game.player2UserName;
-
 			return `
                 <li class="history-item">
                     <div class="history-players">
@@ -98,19 +85,14 @@ function renderHistoryList() {
 		.join("");
 }
 
-socket.on("connect", () => {
-	console.log("LOG 0: Socket connected. ID:", socket.id);
-});
+socket.on("connect", () => {});
 
 //Visa första sidan
 function showFirstPage() {
-	console.log("LOG 4: showFirstPage triggered");
 	app.innerHTML = "";
 	const firstPage = createFirstPage((nickname) => {
-		console.log("LOG 6: FirstPage callback received nickname:", nickname);
 		showWaitingRoom(nickname);
 	});
-	console.log("LOG 5: Appending firstPage to DOM");
 	app.appendChild(firstPage);
 
 	renderHistoryList();
@@ -119,29 +101,22 @@ function showFirstPage() {
 
 //Visa sidan när man väntar på en annan spelare
 function showWaitingRoom(nickname: string) {
-	console.log("LOG 7: showWaitingRoom triggered for:", nickname);
 	app.innerHTML = "";
 	const waitingRoom = createWaitingRoom(
 		nickname,
 		socket,
 		() => {
-			console.log("LOG EXIT: Returning to First Page");
 			showFirstPage();
 		},
 		() => {
-			console.log(
-				"LOG 13: WaitingRoom callback 'goToGamePage' triggered",
-			);
 			showGamePage(nickname);
 		},
 	);
-	console.log("LOG 10: Appending waitingRoom to DOM");
 	app.appendChild(waitingRoom);
 }
 
 //Visa spelsidan
 function showGamePage(nickname: string) {
-	console.log("LOG 14: showGamePage triggered for:", nickname);
 	app.innerHTML = "";
 	const gamePage = createGamePage(
 		nickname,
@@ -149,7 +124,6 @@ function showGamePage(nickname: string) {
 		() => showWaitingRoom(nickname), //skickar med funktionen för YES
 		showFirstPage, //Skickar med funktionen för NO
 	);
-	console.log("LOG 16: Appending gamePage to DOM");
 	app.appendChild(gamePage);
 }
 

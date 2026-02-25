@@ -10,7 +10,7 @@ export function createWaitingRoom(
 	goToFirstPage: () => void,
 	goToGamePage: () => void,
 ): HTMLElement {
-	console.log("LOG 8: createWaitingRoom() called for:", nickname);
+
 
 	const container = document.createElement("section");
 	container.className = "waiting-room";
@@ -46,31 +46,28 @@ export function createWaitingRoom(
 		clearInterval(dotsInterval);
 		socket.off("startGame");
 		socket.off("countDown");
-		console.log("LOG 11.1: Navigating to game page");
+
 		goToGamePage();
 	};
 
 	// --- SOCKET LOGIK ---
-	console.log("LOG 9: Emitting playerJoinRequest");
+
 	socket.emit(
 		"playerJoinRequest",
 		nickname,
 		(response: { success: boolean; gameRoomId: string }) => {
-			console.log("LOG 9.1: Join response from server:", response);
+			console.log("Join response from server:", response);
 		},
 	);
 
 	//nedräkning visas på spelsidan så virus lyssnare är redo
 	socket.on("startGame", () => {
-		console.log(
-			"LOG 11: startGame event received – navigating immediately",
-		);
 		navigateToGame();
 	});
 
 	// Absorbera countDown-events från servern utan att agera på dem
 	socket.on("countDown", (num) => {
-		console.log("LOG 12.1: countDown mottagen (ignoreras):", num);
+		console.log(" countDown mottagen:", num);
 	});
 
 	// Visa nickname
@@ -84,7 +81,6 @@ export function createWaitingRoom(
 	exitButton.textContent = "Exit";
 	exitButton.className = "exit-button";
 	exitButton.onclick = () => {
-		console.log("LOG EXIT: User clicked exit button");
 		clearInterval(dotsInterval);
 		socket.off("startGame");
 		socket.off("countDown");

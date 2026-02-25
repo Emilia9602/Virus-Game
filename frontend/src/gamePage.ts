@@ -12,7 +12,6 @@ export function createGamePage(
 	goToWaitingRoom: () => void,
 	goToFirstPage: () => void,
 ): HTMLElement {
-	console.log("LOG 15: createGamePage() called for:", nickname);
 
 	const container = document.createElement("section");
 	container.className = "game-page";
@@ -146,7 +145,7 @@ export function createGamePage(
 					const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
 					return `
                     <div class="player-box">
-                        <span class="player-name">${isMe ? player.username + " (Du)" : player.username}:</span>
+                        <span class="player-name">${isMe ? player.username : player.username}:</span>
                         <span id="${timerId}" class="timer">0.00s</span>
                     </div>`;
 				})

@@ -28,7 +28,7 @@ model Player {
 
 model GameRoom {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  gameOver  Boolean? //@default(false)
+  gameOver  Boolean? 
   gameRound Int?     @default(0)
 
   players Player[]

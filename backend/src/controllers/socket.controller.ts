@@ -12,7 +12,7 @@ import {
 	getGameRooms,
 	getLiveScores,
 	updateGameRoomRounds,
-	deleteGameRoom, // Importera raderingsfunktionen
+	deleteGameRoom,
 } from "../services/gameRoom.service.ts";
 import {
 	createPlayer,
@@ -76,7 +76,6 @@ export const handleConnection = (
 		const playersInRoom = await getPlayersInRoom(gameRoom.id);
 
 		if (playersInRoom.length === 2) {
-
 			//Nollställ timers och poäng för båda spelarna om de varit i ett tidigare spel
 			await resetPlayerScores(playersInRoom[0].id);
 			await resetPlayerScores(playersInRoom[1].id);
@@ -91,7 +90,6 @@ export const handleConnection = (
 			io.to(gameRoom.id).emit("waiting");
 		}
 	});
-
 
 	socket.on("virusClicked", async (reactionTime: number, gameRoomId: string) => {
 		const player = await getPlayerInRoom(socket.id);
@@ -132,9 +130,7 @@ export const handleConnection = (
 				setTimeout(async () => {
 					await deleteGameRoom(gameRoomId);
 					await broadcastLiveScores();
-					await broadcastRecentGames()
-
-					debug("Match completed and room %s deleted", gameRoomId);
+					await broadcastRecentGames();
 				}, 2000);
 				return;
 			}
@@ -148,7 +144,6 @@ export const handleConnection = (
 	});
 
 	socket.on("disconnect", async () => {
-
 		const player = await getPlayerInRoom(socket.id);
 		if (!player) return;
 
@@ -166,13 +161,11 @@ export const handleConnection = (
 				await deleteGameRoom(gameRoomId);
 				await broadcastLiveScores();
 			} else {
-
 				// Radera rummet efter en kort stund så motståndaren hinner se rage-quit meddelandet
 				setTimeout(async () => {
 					await deleteGameRoom(gameRoomId);
 					await broadcastLiveScores();
 					await broadcastRecentGames();
-					debug("Room %s deleted after ragequit delay", gameRoomId);
 				}, 3000);
 			}
 		}
