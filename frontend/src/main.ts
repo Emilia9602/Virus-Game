@@ -16,15 +16,13 @@ const SOCKET_HOST = import.meta.env.VITE_SOCKET_HOST;
 console.log("LOG 2: Connecting to:", SOCKET_HOST);
 
 // global variabel
-let latestGamesState: GameResult[]=[];
+let latestGamesState: GameResult[] = [];
 let liveGamesState: ShowLiveScore[] = [];
-
-
 
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 	io(SOCKET_HOST);
 
-	//-----TOG BORT DENNA----//
+//-----TOG BORT DENNA----//
 // socket.on("countDown", (num) => {
 // 	console.log("LOG 12: Socket countDown received:", num);
 // });
@@ -32,66 +30,61 @@ const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 const app = document.querySelector<HTMLDivElement>("#app")!;
 console.log("LOG 3: #app element found:", !!app);
 
-
 // Uppdatera antal aktiva spel
 socket.on("showLiveScore", (gamesInProgress) => {
 	liveGamesState = gamesInProgress;
-    renderLiveScores();
-
+	renderLiveScores();
 });
 
+const renderLiveScores = () => {
+	const activeCountEl = document.querySelector("#active-games-count");
+	const liveDetailsEl = document.querySelector("#live-games-details");
 
+	// Uppdatera räknaren om den finns
+	if (activeCountEl) {
+		activeCountEl.textContent = liveGamesState.length.toString();
+	}
 
-	const renderLiveScores = ()=>{
-		const activeCountEl = document.querySelector("#active-games-count");
-		const liveDetailsEl = document.querySelector("#live-games-details");
-
-		// Uppdatera räknaren om den finns
-    if (activeCountEl) {
-        activeCountEl.textContent = liveGamesState.length.toString();
-    }
-
-    // Uppdatera listan om den finns
-    if (liveDetailsEl) {
-        if (liveGamesState.length === 0) {
-            liveDetailsEl.innerHTML = `<li>No games currently active</li>`;
-            return;
-        }
+	// Uppdatera listan om den finns
+	if (liveDetailsEl) {
+		if (liveGamesState.length === 0) {
+			liveDetailsEl.innerHTML = `<li>No games currently active</li>`;
+			return;
+		}
 
 		liveDetailsEl.innerHTML = liveGamesState
 			.map((game) => {
 				const p1 = game.players[0]?.username || "Waiting...";
 				const p2 = game.players[1]?.username || "Waiting...";
 				const round = game.gameRound ?? 0;
-				return `<li>${p1} vs ${p2} <br><small>Round: ${round}/10</small></li>`;
+				return `<li>${p1} vs ${p2} <br><small>${round}/10</small></li>`;
 			})
 			.join("");
 	}
-}
-
+};
 
 socket.on("showRecentGames", (games) => {
-    latestGamesState = games;
-    renderHistoryList();
+	latestGamesState = games;
+	renderHistoryList();
 });
 
 function renderHistoryList() {
-    const historyListEl = document.querySelector("#history-list");
-    if (!historyListEl) return;
+	const historyListEl = document.querySelector("#history-list");
+	if (!historyListEl) return;
 
-    if (latestGamesState.length === 0) {
-        historyListEl.innerHTML = `<li class="loading-msg">No recent matches</li>`;
-        return;
-    }
+	if (latestGamesState.length === 0) {
+		historyListEl.innerHTML = `<li class="loading-msg">No recent matches</li>`;
+		return;
+	}
 
-    historyListEl.innerHTML = latestGamesState
-        .map((game) => {
-            const isDraw = game.player1Score === game.player2Score;
-            const winner = game.player1Score > game.player2Score
-                ? game.player1UserName
-                : game.player2UserName;
+	historyListEl.innerHTML = latestGamesState
+		.map((game) => {
+			//const isDraw = game.player1Score === game.player2Score;
+			//const winner = game.player1Score > game.player2Score
+			//   ? game.player1UserName
+			// : game.player2UserName;
 
-            return `
+			return `
                 <li class="history-item">
                     <div class="history-players">
                         <strong>${game.player1UserName}</strong> vs <strong>${game.player2UserName}</strong>
@@ -99,12 +92,10 @@ function renderHistoryList() {
                     <div class="history-score">
                         ${game.player1Score} - ${game.player2Score}
                     </div>
-                    <small class="history-winner">
-                        ${isDraw ? "Draw" : `Winner: ${winner}`}
-                    </small>
+
                 </li>`;
-        })
-        .join("");
+		})
+		.join("");
 }
 
 socket.on("connect", () => {

@@ -1,8 +1,10 @@
-export function createFirstPage(onStart: (nickname: string) => void): HTMLElement {
-    const container = document.createElement("section");
-    container.className = "first-page";
+export function createFirstPage(
+	onStart: (nickname: string) => void,
+): HTMLElement {
+	const container = document.createElement("section");
+	container.className = "first-page";
 
-    container.innerHTML = `
+	container.innerHTML = `
         <div class="content-wrapper">
             <img src="/virushero.jpg" alt="Game Logo" class="game-logo">
 
@@ -24,40 +26,53 @@ export function createFirstPage(onStart: (nickname: string) => void): HTMLElemen
             </div>
 
             <div class="stats-wrapper">
-                <div class="stats-card">
-                    <h3>Recent Matches</h3>
-                    <ul id="history-list" class="stats-list">
-                        <li class="loading-msg">No recent matches</li>
-                    </ul>
-                </div>
+			<div class="stats-card">
+			    <h3>Recent Games</h3>
+			    <div class="table-header">
+			        <span>Players</span>
+			        <span>Result</span>
+			    </div>
+			    <ul id="history-list" class="stats-list">
+			        <li class="loading-msg">No recent games</li>
+			    </ul>
+			</div>
 
-                <div class="stats-card">
-                    <h3>Active Games</h3>
-                    <div id="active-games-list" class="active-games-container">
-                        <p id="active-games-count" class="stats-count">0</p>
-                        <ul id="live-games-details" class="stats-list"></ul>
-                    </div>
-                </div>
-            </div>
+			<div class="stats-card">
+			    <h3>Active Games</h3>
+			    <div class="table-header">
+			        <span>Players</span>
+			        <span>Round</span>
+			    </div>
+			    <div id="active-games-list" class="active-games-container">
+			        <ul id="live-games-details" class="stats-list">
+			            </ul>
+			    </div>
+			</div>
+
         </div>
     `;
 
-    const input = container.querySelector("#nickname") as HTMLInputElement;
-    const startBtn = container.querySelector(".start-button") as HTMLButtonElement;
-    const instructionsBtn = container.querySelector(".instructions-button") as HTMLButtonElement;
-    const instructionsBox = container.querySelector(".instructions-box") as HTMLElement;
+	const input = container.querySelector("#nickname") as HTMLInputElement;
+	const startBtn = container.querySelector(
+		".start-button",
+	) as HTMLButtonElement;
+	const instructionsBtn = container.querySelector(
+		".instructions-button",
+	) as HTMLButtonElement;
+	const instructionsBox = container.querySelector(
+		".instructions-box",
+	) as HTMLElement;
 
-    startBtn.onclick = () => {
-        const name = input.value.trim();
-        if (!name) return alert("Please enter a nickname!");
-        onStart(name);
-    };
+	startBtn.onclick = () => {
+		const name = input.value.trim();
+		if (!name) return alert("Please enter a nickname!");
+		onStart(name);
+	};
 
-    instructionsBtn.onclick = () => {
-        const isHidden = instructionsBox.style.display === "none";
-        instructionsBox.style.display = isHidden ? "block" : "none";
-    };
+	instructionsBtn.onclick = () => {
+		const isHidden = instructionsBox.style.display === "none";
+		instructionsBox.style.display = isHidden ? "block" : "none";
+	};
 
-    return container;
+	return container;
 }
-
