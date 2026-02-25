@@ -1,11 +1,14 @@
 import type { Socket } from "socket.io-client";
-import type { ClientToServerEvents, ServerToClientEvents } from "@shared/types/SocketEvents.types.ts";
+import type {
+	ClientToServerEvents,
+	ServerToClientEvents,
+} from "@shared/types/SocketEvents.types.ts";
 
 export function createWaitingRoom(
 	nickname: string,
 	socket: Socket<ServerToClientEvents, ClientToServerEvents>,
 	goToFirstPage: () => void,
-	goToGamePage: () => void
+	goToGamePage: () => void,
 ): HTMLElement {
 	console.log("LOG 8: createWaitingRoom() called for:", nickname);
 
@@ -36,7 +39,6 @@ export function createWaitingRoom(
 	//goToGamePage anropas bara en gång
 	let hasNavigated = false;
 
-
 	//Stoppar punktanimationen och tar bort socket lyssnare innan vi byter sida
 	const navigateToGame = () => {
 		if (hasNavigated) return;
@@ -50,13 +52,19 @@ export function createWaitingRoom(
 
 	// --- SOCKET LOGIK ---
 	console.log("LOG 9: Emitting playerJoinRequest");
-	socket.emit("playerJoinRequest", nickname, (response: { success: boolean; gameRoomId: string }) => {
-		console.log("LOG 9.1: Join response from server:", response);
-	});
+	socket.emit(
+		"playerJoinRequest",
+		nickname,
+		(response: { success: boolean; gameRoomId: string }) => {
+			console.log("LOG 9.1: Join response from server:", response);
+		},
+	);
 
 	//nedräkning visas på spelsidan så virus lyssnare är redo
 	socket.on("startGame", () => {
-		console.log("LOG 11: startGame event received – navigating immediately");
+		console.log(
+			"LOG 11: startGame event received – navigating immediately",
+		);
 		navigateToGame();
 	});
 
@@ -67,7 +75,7 @@ export function createWaitingRoom(
 
 	// Visa nickname
 	const playerName = document.createElement("p");
-	playerName.textContent = `Your nickname: ${nickname}`;
+	playerName.textContent = `Your nickname is ${nickname}`;
 	wrapper.appendChild(playerName);
 	container.appendChild(wrapper);
 

@@ -42,7 +42,7 @@ export function createGamePage(
             <div class="scores" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;"></div>
         </div>
 
-        <div class="game-board-wrapper" style="width: 600px; height: 600px; margin: 0 auto; border: 5px solid #333; position: relative;">
+        <div class="game-board-wrapper" style="width: 600px; height: 600px; margin: 0 auto; border: 5px solid #00ff88; position: relative;">
             <div id="game-area" class="gridSystem"></div>
             <div id="virus" class="virus-target" style="display: none; cursor: pointer; font-size: 2rem; position: absolute; z-index: 10;">🦠</div>
 
@@ -131,33 +131,33 @@ export function createGamePage(
 	});
 
 	socket.on("playersInRoom", (players: Player[]) => {
-    const playerTimerEl = container.querySelector("#playerTimers");
-    if (playerTimerEl && players.length > 0) {
-        currentGameRoomId = players[0].gameRoomId;
-        playerTimerEl.innerHTML = players
-            .map((player, index) => {
-                const isMe = player.id === socket.id;
-                if (isMe) {
-                    myName = player.username;
-                    iAmP1 = index === 0;
-                } else {
-                    opponentName = player.username;
-                }
-                const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
-                return `
+		const playerTimerEl = container.querySelector("#playerTimers");
+		if (playerTimerEl && players.length > 0) {
+			currentGameRoomId = players[0].gameRoomId;
+			playerTimerEl.innerHTML = players
+				.map((player, index) => {
+					const isMe = player.id === socket.id;
+					if (isMe) {
+						myName = player.username;
+						iAmP1 = index === 0;
+					} else {
+						opponentName = player.username;
+					}
+					const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
+					return `
                     <div class="player-box">
                         <span class="player-name">${isMe ? player.username + " (Du)" : player.username}:</span>
                         <span id="${timerId}" class="timer">0.00s</span>
                     </div>`;
-            })
-            .join("");
+				})
+				.join("");
 
-        const scoreEl = container.querySelector(".scores");
-        if (scoreEl) {
-            scoreEl.textContent = `${myName}: 0 | ${opponentName}: 0`;
-        }
-    }
-});
+			const scoreEl = container.querySelector(".scores");
+			if (scoreEl) {
+				scoreEl.textContent = `${myName}: 0 | ${opponentName}: 0`;
+			}
+		}
+	});
 
 	//Visa spelarnas poäng i gameRoom
 	socket.on("showScores", (p1, p2) => {
