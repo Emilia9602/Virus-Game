@@ -36,17 +36,18 @@ io.on("connection", (socket) => {
  * Delete all players and rooms
  */
 
-deleteAllPlayersAndGames()
-	.then(() => {
-		/**
-		 * Listen on provided port, on all network interfaces.
-		 */
-		httpServer.listen(PORT);
-	})
-	.catch((error: NodeJS.ErrnoException) => {
-		console.error("Could not delete all players or rooms", error);
-		throw error;
-	});
+httpServer.listen(PORT, async () => {
+  console.log(`🌎 Server started on port ${PORT}`);
+
+  try {
+    await deleteAllPlayersAndGames();
+    console.log("🧹 Players and games cleared");
+  } catch (err) {
+    console.error("Could not delete players/games", err);
+  }
+});
+
+
 
 /**
  * Event listener for HTTP server "error" event.
