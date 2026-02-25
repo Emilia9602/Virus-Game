@@ -56,19 +56,48 @@
 	}
 }
 
+$neon-green: #00ff88;
+
 .game-page {
-	p,
+	h1,
+	h2 {
+		font-family: "Creepster", cursive;
+		color: $neon-green;
+		text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+	}
+
 	.game-status,
 	.scores,
-	.player-box span {
-		font-family: Georgia, serif;
-		color: #09581d;
-		text-shadow:
-			2px 2px 4px rgba(0, 0, 0, 0.8),
-			0 0 10px rgba(0, 0, 0, 0.5);
+	.player-box {
+		font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+		color: #ffffff;
+		font-weight: bold;
+		font-size: 1.1rem;
+
+		.player-name {
+			color: $neon-green;
+			margin-right: 8px;
+		}
+
+		.timer {
+			color: #fff;
+			font-family: "Courier New", Courier, monospace;
+		}
+	}
+
+	.scores {
+		margin-top: 1rem;
+		padding: 10px;
+		display: inline-block;
+	}
+
+	#playerTimers {
+		display: flex;
+		justify-content: center;
+		gap: 2rem;
+		margin: 1rem 0;
 	}
 }
-
 // Grid System
 .gridSystem {
 	display: grid;
@@ -288,20 +317,25 @@ body {
 	margin-bottom: 2rem;
 }
 
-//Instruktions knapp
+/* ================ Instructions ======================= */
+
+$neon-green: #00ff88;
+
 .instructions-button {
-	width: 130px;
-	padding: 0.8rem 1.2rem;
-	font-size: 0.8rem;
+	padding: 0.6rem 1.2rem;
+	font-size: 0.75rem;
+	font-weight: bold;
+	text-transform: uppercase;
 	border-radius: 50px;
-	background: #218838;
-	color: white;
-	border: none;
+	background: transparent;
+	color: $neon-green;
+	border: 1px solid $neon-green;
 	cursor: pointer;
-	transition: 0.2s;
+	transition: all 0.3s ease;
 
 	&:hover {
-		background: #28a745;
+		background: rgba($neon-green, 0.1);
+		box-shadow: 0 0 10px $neon-green;
 	}
 }
 
@@ -309,15 +343,78 @@ body {
 	width: 100%;
 	display: flex;
 	justify-content: flex-end;
-	margin-bottom: 2rem;
+	margin-bottom: 1rem;
 }
 
+// Instruktions-box
 .instructions-box {
-	position: absolute;
-	top: 25%;
-	background-color: black;
-	padding: 2%;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: rgba(0, 0, 0, 0.95);
+	padding: 3rem 2rem 2rem; // Mer padding i toppen för att knappen inte ska krocka med rubriken
+	border: 2px solid $neon-green;
+	border-radius: 15px;
+	box-shadow:
+		0 0 30px rgba(0, 0, 0, 0.9),
+		inset 0 0 15px rgba($neon-green, 0.2);
+	z-index: 1000;
+	width: 90%;
+	max-width: 400px;
+	text-align: center;
+
+	// Kryss-knappen i högra hörnet
+	.close-instructions {
+		position: absolute; // Fixerar knappen relativt till boxen
+		top: 15px;
+		right: 15px; // Drar den hela vägen till höger
+		background: transparent;
+		border: none;
+		color: $neon-green;
+		font-size: 1.8rem;
+		line-height: 1;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		padding: 5px;
+
+		&:hover {
+			color: #fff;
+			transform: scale(1.2);
+			text-shadow: 0 0 10px $neon-green;
+		}
+	}
+
+	h3 {
+		font-family: "Creepster", cursive;
+		color: $neon-green;
+		font-size: 1.8rem;
+		margin-bottom: 1rem;
+	}
+
+	p {
+		color: #eee;
+		margin: 0.8rem 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+
+		&::before {
+			content: "🦠";
+			font-size: 0.8rem;
+		}
+	}
+
+	.close-hint {
+		margin-top: 1.5rem;
+		font-size: 0.7rem;
+		color: $neon-green;
+		opacity: 0.6;
+		text-transform: uppercase;
+	}
 }
+/* ================ Join Game Style ======================= */
 
 // Styling för input-fältet
 .nickname-input {
@@ -362,7 +459,7 @@ body {
 		box-shadow 0.2s;
 
 	&:hover {
-		transform: translateY(-2px); 
+		transform: translateY(-2px);
 		box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
 	}
 
@@ -371,122 +468,119 @@ body {
 	}
 }
 
-
 // Stats-korten
 .stats-wrapper {
-    display: flex;
-    gap: 1.5rem;
-    width: 95%;
-    max-width: 800px;
-    margin: 3rem auto 0;
+	display: flex;
+	gap: 1.5rem;
+	width: 95%;
+	max-width: 800px;
+	margin: 3rem auto 0;
 
-    @media (max-width: 600px) {
-        flex-direction: column;
-    }
+	@media (max-width: 600px) {
+		flex-direction: column;
+	}
 }
 
 .stats-card {
-    flex: 1;
-    background: rgb(72, 69, 69);
-    padding: 1.5rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+	flex: 1;
+	background: rgb(72, 69, 69);
+	padding: 1.5rem;
+	border-radius: 15px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
 
-    h3 {
-        font-family: "Creepster", system-ui;
-        font-size: 1.2rem;
-        color: #e0d5d5;
-        text-transform: uppercase;
-        margin-bottom: 1rem;
-        text-align: center;
-    }
+	h3 {
+		font-family: "Creepster", system-ui;
+		font-size: 1.2rem;
+		color: #e0d5d5;
+		text-transform: uppercase;
+		margin-bottom: 1rem;
+		text-align: center;
+	}
 }
 
-
 .table-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 0.5rem 0.5rem;
-    border-bottom: 2px solid #555;
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #bbb;
-    text-transform: uppercase;
+	display: flex;
+	justify-content: space-between;
+	padding: 0 0.5rem 0.5rem;
+	border-bottom: 2px solid #555;
+	font-size: 0.75rem;
+	font-weight: bold;
+	color: #bbb;
+	text-transform: uppercase;
 }
 
 .stats-list {
-    margin: 0.5rem 0 0;
-    padding: 0;
-    max-height: 250px;
-    overflow-y: auto;
-    list-style: none;
+	margin: 0.5rem 0 0;
+	padding: 0;
+	max-height: 250px;
+	overflow-y: auto;
+	list-style: none;
 
-    // scrollbar
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-    &::-webkit-scrollbar-thumb {
-        background: #444;
-        border-radius: 10px;
-    }
+	// scrollbar
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+	&::-webkit-scrollbar-thumb {
+		background: #444;
+		border-radius: 10px;
+	}
 
-    li {
-        font-family: "Segoe UI", sans-serif;
-        padding: 0.8rem 0.5rem;
-        border-bottom: 1px solid #4a4a4a;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
+	li {
+		font-family: "Segoe UI", sans-serif;
+		padding: 0.8rem 0.5rem;
+		border-bottom: 1px solid #4a4a4a;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 10px;
 
-        &:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
+		&:hover {
+			background: rgba(255, 255, 255, 0.05);
+		}
 
-        &:last-child {
-            border-bottom: none;
-        }
+		&:last-child {
+			border-bottom: none;
+		}
 
-        .players-info {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-            font-size: 0.95rem;
-            color: #eee;
-            line-height: 1.3;
-            flex: 1;
+		.players-info {
+			display: flex;
+			flex-direction: column;
+			text-align: left;
+			font-size: 0.95rem;
+			color: #eee;
+			line-height: 1.3;
+			flex: 1;
 
-            .vs {
-                font-size: 0.7rem;
-                color: #00ff88;
-                font-style: italic;
-                margin: 1px 0;
-            }
+			.vs {
+				font-size: 0.7rem;
+				color: #00ff88;
+				font-style: italic;
+				margin: 1px 0;
+			}
 
-            .winner {
-                color: #00ff88;
-                font-weight: bold;
-            }
-        }
+			.winner {
+				color: #00ff88;
+				font-weight: bold;
+			}
+		}
 
-        .game-status {
-            font-family: "monospace";
-            font-weight: bold;
-            font-size: 1rem;
-            color: #fff;
-            background: #1a1a1a;
-            padding: 5px 8px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            min-width: 65px;
-            text-align: center;
-            box-shadow: inset 0 0 5px rgba(0, 255, 136, 0.1);
-
-        }
-    }
+		.game-status {
+			font-family: "monospace";
+			font-weight: bold;
+			font-size: 1rem;
+			color: #fff;
+			background: #1a1a1a;
+			padding: 5px 8px;
+			border-radius: 6px;
+			border: 1px solid #444;
+			min-width: 65px;
+			text-align: center;
+			box-shadow: inset 0 0 5px rgba(0, 255, 136, 0.1);
+		}
+	}
 }
 
 //Waiting Room Styling
@@ -587,7 +681,6 @@ body {
 	}
 	.instructions-box {
 		position: absolute;
-		top: 28%;
 	}
 }
 

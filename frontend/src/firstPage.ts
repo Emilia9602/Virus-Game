@@ -12,12 +12,13 @@ export function createFirstPage(
                 <button class="instructions-button">How to Play</button>
             </div>
 
-            <div class="instructions-box" style="display: none;">
-                <h3>How to Play:</h3>
-                <p>Click the virus as fast as possible.</p>
-                <p>The fastest player gets the point.</p>
-                <p>The player with most points wins.</p>
-            </div>
+         <div class="instructions-box" style="display: none;">
+   			<button class="close-instructions">&times;</button>
+   			<h3>How to Play:</h3>
+   			<p>Click the virus as fast as possible.</p>
+   			<p>The fastest player gets the point.</p>
+   			<p>The player with most points wins.</p>
+			</div>
 
             <input type="text" placeholder="Enter nickname" maxlength="16" class="nickname-input" id="nickname">
 
@@ -26,29 +27,27 @@ export function createFirstPage(
             </div>
 
             <div class="stats-wrapper">
-			<div class="stats-card">
-			    <h3>Recent Games</h3>
-			    <div class="table-header">
-			        <span>Players</span>
-			        <span>Result</span>
-			    </div>
-			    <ul id="history-list" class="stats-list">
-			        <li class="loading-msg">No recent games</li>
-			    </ul>
-			</div>
+                <div class="stats-card">
+                    <h3>Recent Games</h3>
+                    <div class="table-header">
+                        <span>Players</span>
+                        <span>Result</span>
+                    </div>
+                    <ul id="history-list" class="stats-list">
+                        <li class="loading-msg">No recent games</li>
+                    </ul>
+                </div>
 
-			<div class="stats-card">
-			    <h3>Active Games</h3>
-			    <div class="table-header">
-			        <span>Players</span>
-			        <span>Round</span>
-			    </div>
-			    <div id="active-games-list" class="active-games-container">
-			        <ul id="live-games-details" class="stats-list">
-			            </ul>
-			    </div>
-			</div>
-
+                <div class="stats-card">
+                    <h3>Active Games</h3>
+                    <div class="table-header">
+                        <span>Players</span>
+                        <span>Round</span>
+                    </div>
+                    <ul id="live-games-details" class="stats-list">
+                    </ul>
+                </div>
+            </div>
         </div>
     `;
 
@@ -69,9 +68,16 @@ export function createFirstPage(
 		onStart(name);
 	};
 
+	const closeX = container.querySelector(
+		".close-instructions",
+	) as HTMLButtonElement;
+
 	instructionsBtn.onclick = () => {
-		const isHidden = instructionsBox.style.display === "none";
-		instructionsBox.style.display = isHidden ? "block" : "none";
+		instructionsBox.style.display = "block";
+	};
+
+	closeX.onclick = () => {
+		instructionsBox.style.display = "none";
 	};
 
 	return container;

@@ -131,26 +131,33 @@ export function createGamePage(
 	});
 
 	socket.on("playersInRoom", (players: Player[]) => {
-		const playerTimerEl = container.querySelector("#playerTimers");
-		if (playerTimerEl && players.length > 0) {
-			currentGameRoomId = players[0].gameRoomId;
-			playerTimerEl.innerHTML = players
-				.map((player, index) => {
-					const isMe = player.id === socket.id;
-					if (isMe) {
-						myName = player.username;
-						iAmP1 = index === 0;
-					} else opponentName = player.username;
-					const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
-					return `<div class="player-box"><span>${isMe ? player.username + " (Du)" : player.username}</span><span id="${timerId}">0.00s</span></div>`;
-				})
-				.join("");
+    const playerTimerEl = container.querySelector("#playerTimers");
+    if (playerTimerEl && players.length > 0) {
+        currentGameRoomId = players[0].gameRoomId;
+        playerTimerEl.innerHTML = players
+            .map((player, index) => {
+                const isMe = player.id === socket.id;
+                if (isMe) {
+                    myName = player.username;
+                    iAmP1 = index === 0;
+                } else {
+                    opponentName = player.username;
+                }
+                const timerId = isMe ? "myStopWatch" : "opponentStopWatch";
+                return `
+                    <div class="player-box">
+                        <span class="player-name">${isMe ? player.username + " (Du)" : player.username}:</span>
+                        <span id="${timerId}" class="timer">0.00s</span>
+                    </div>`;
+            })
+            .join("");
 
-			const scoreEl = container.querySelector(".scores");
-			if (scoreEl)
-				scoreEl.textContent = `${myName}: 0 | ${opponentName}: 0`;
-		}
-	});
+        const scoreEl = container.querySelector(".scores");
+        if (scoreEl) {
+            scoreEl.textContent = `${myName}: 0 | ${opponentName}: 0`;
+        }
+    }
+});
 
 	//Visa spelarnas poäng i gameRoom
 	socket.on("showScores", (p1, p2) => {
