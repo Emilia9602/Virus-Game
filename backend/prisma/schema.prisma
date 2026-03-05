@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id           String  @id @map("_id")
+  username     String
+  socketId     String? @unique
+  gameRoomId   String? @db.ObjectId
+  score        Int     @default(0)
+  reactionTime Int?
+
+  GameRoom GameRoom? @relation(fields: [gameRoomId], references: [id])
+}
+
+model GameRoom {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameOver  Boolean? 
+  gameRound Int?     @default(0)
+
+  players Player[]
+}
+
+model PostGame {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  player1UserName String
+  player1Score    Int
+  player2UserName String
+  player2Score    Int
+}

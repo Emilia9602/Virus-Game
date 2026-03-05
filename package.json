@@ -1,0 +1,23 @@
+{
+  "name": "fed25-api-realtime-boilerplate",
+  "version": "1.0.0",
+  "scripts": {
+    "install": "cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev",
+    "build": "env-cmd --silent bash build.sh",
+    "start": "cd backend && npm start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mongodb": "^7.1.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.2",
+    "env-cmd": "^11.0.0",
+    "sass": "^1.97.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
